@@ -70,14 +70,13 @@ export default {
                     // name: 'coseBilkent',
                     name: 'dagre',
                     nodeDimensionsIncludeLabels: true,
-
                 },
-                minZoom: 0.3,
                 style: [
                     {
                         selector: 'node',
                         style: {
                             'content': 'data(address)',
+                            "shape": "round-rectangle",
                             'text-opacity': 0.5,
                             "height": 40,
                             "width": 40,
@@ -101,15 +100,12 @@ export default {
 
                 ],
                 elements: {
-                    //节点数据
                     nodes: this.nodes,
-                    //
                     edges: this.edges,
                 }
             });
             cy.cxtmenu({
                 selector: 'node',
-
                 commands: [
                     {
                         content: 'Info',
@@ -117,7 +113,6 @@ export default {
                             console.log(ele.id());
                         }
                     },
-
                     {
                         content: '跳转到该TB',
                         select: function (ele) {

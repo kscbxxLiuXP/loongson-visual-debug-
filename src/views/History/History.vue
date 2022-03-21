@@ -134,7 +134,7 @@
 
 <script>
 import {basic_url} from "@/request/request";
-import Trace from "@/components/Trace/Trace";
+import Trace from "@/components/Trace/TraceDialog";
 
 export default {
     name: "History",
