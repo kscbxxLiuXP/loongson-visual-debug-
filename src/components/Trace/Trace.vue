@@ -144,7 +144,7 @@ export default {
                         radius: 10,
                         offset: 30,
                         endArrow: true,
-                        lineWidth: 4,
+                        lineWidth: 3,
                         stroke: '#C2C8D5',
                     },
 
@@ -153,7 +153,7 @@ export default {
                 edgeStateStyles: {
                     // edge style of active state
                     active: {
-                        lineWidth: 5,
+                        lineWidth: 4,
                         opacity: 0.5,
                         stroke: '#0900ff',
 
@@ -161,12 +161,12 @@ export default {
                     // edge style of selected state
                     selected: {
                         stroke: '#f00',
-                        lineWidth: 5,
+                        lineWidth: 4,
                         shadowBlur: 0
                     },
                     highlight: {
                         stroke: '#f00',
-                        lineWidth: 5,
+                        lineWidth: 4,
                         shadowBlur: 0
                     },
                 },

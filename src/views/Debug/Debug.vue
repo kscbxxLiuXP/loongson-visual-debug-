@@ -1,70 +1,20 @@
 <template>
     <el-container id="debug-container">
         <el-aside :width="width" class="lf" ref="letfDom">
-            <div style="position: absolute; top:20px;display: flex;flex-direction: column;padding-bottom: 5px;">
-                <div>
-                    <el-radio v-model="radio" label="1">按地址搜索</el-radio>
-                    <el-radio v-model="radio" label="2">按指令搜索</el-radio>
-                    <div v-if="radio==='1'">
-                        <el-input size="mini" placeholder="地址" v-model="form.address" style="width: 250px" clearable>
-                        </el-input>
-                    </div>
+            <ToolBoxContainer
+                ref="toolbox"
+                :ltid="this.id"
 
-                    <div style="display: flex;" v-if="radio==='2'">
-
-                        <el-select size="mini" v-model="form.insType" placeholder="请选择指令类型">
-                            <el-option label="全选" value="1">
-                            </el-option>
-                            <el-option label="x86" value="2"></el-option>
-                            <el-option label="LoongArch" value="3"></el-option>
-                        </el-select>
-                        <el-input size="mini" v-model="form.instruction" placeholder="指令" clearable/>
-
-                    </div>
-                    <el-button type="primary" size="mini" @click="onSubmitSearch">搜索</el-button>
-                    <el-button type="primary" size="mini" @click="onClearSearch">重置</el-button>
-                </div>
-
-                <div v-if="searched"
-                     style="height: 38px;margin-top: 10px;display: flex;align-items: center;border-radius: 5px;background-color: #f7f8f9;padding: 5px;position: relative">
-                    <transition name="shadow-transition">
-                        <div class='popContainer' v-if="addressloading"/>
-                    </transition>
-
-                    <svg id="load" x="0px" y="0px" viewBox="0 0 150 150" :style="{ width: addressloading?'30px':'0' }"
-                         style="transition: all 300ms">
-                        <circle id="loading-inner" cx="75" cy="75" r="45"/>
-                    </svg>
-                    <div style="background-color: white;padding: 2px 10px;border-radius: 10px;margin-left: 10px">
-                        检索结果:
-                    </div>
-
-                    <div style="margin-left: 10px">
-                        共搜索到
-                    </div>
-                    <div style="line-height: normal;vertical-align:middle">{{ toThousand(resultsNum) }}处</div>
-                    <div>
-                        ，当前位于
-                    </div>
-                    <el-input-number size="mini"
-                                     controls-position="right" :min="1"
-                                     :max="resultsNum"
-                                     style="width: 100px;margin-left: 10px"
-                                     @keyup.enter.native="currentSearchChange"
-                                     v-model="inputCurrentSearch"/>
-                    <div style="margin-left: 10px">
-                        / {{ toThousand(resultsNum) }}
-                    </div>
-                    <div style="margin-left: 20px">
-                        <el-button size="mini" @click="previousResult">上一处</el-button>
-                        <el-button size="mini" @click="nextResult">下一处</el-button>
-                    </div>
-                </div>
-
-            </div>
-            <TraceBox style="flex:1;" :ltlog="ltlog" :traceid="ltlog.traced?ltlog.traceid:-1" :jump-t-b="jumpTB1"/>
+                :clear-select="clearSelect"
+                :selectSearch="selectSearch"
+                :set-loading="setLoading"
+                :set-keyword="setKeyword"
+                :jump-t-b-and-select="jumpTBAndSelect"
+            />
+            <TraceContainer style="flex:1;" :ltlog="ltlog" :traceid="ltlog.traced?ltlog.traceid:-1"
+                            :jump-t-b="jumpTB"/>
             <div class="touch-div" ref="moveDom">
-                <div class="circle" :key="'circle'+i" v-for=" i in 6"></div>
+                <!--<div class="circle" :key="'circle'+i" v-for=" i in 6"></div>-->
             </div>
         </el-aside>
         <el-container class="rt">
@@ -158,7 +108,6 @@
                             <!---------TB块左边部分ST--------->
                             <div style="width: 50%;border-right: #B3C0D1 solid 1px" class="tbblock-content-left">
                                 <!---------一条IR2指令ST--------->
-                                <!--                        getClassName(item.tbindex,i.id)-->
                                 <div
                                     class="normalIR2"
                                     v-bind:class="(item.tbindex===currentTB&&i.id>=selectIR2Start&&i.id<=selectIR2End)?'selectIR2':'normalIR2'"
@@ -241,7 +190,7 @@
                  @mouseleave="mouseleave()" :key="index" v-for="(item ,index) in simpleTbBlocks"
                  style="position: relative">
                 <div :style="{height:tbMemHeight}" class="mTB"
-                     @click="jumpTB1(item.tbindex)">
+                     @click="jumpTB(item.tbindex)">
 
                 </div>
                 <div v-if="mTipSeen&&mTipSeenId===index" class="mTBPop">
@@ -358,16 +307,15 @@
 
 <script>
 import {basic_url} from "@/request/request";
-import TBBlock from "@/views/Debug/TBBlock";
 import Mark from "mark.js";
 import OperandWrapper from "@/components/OperandWrapper/OperandWrapper";
-import Trace from "@/components/Trace/Trace";
-import TraceBox from "@/components/Trace/TraceBox";
+import ToolBoxContainer from "@/views/Debug/ToolBoxContainer";
+import TraceContainer from "@/components/Trace/TraceContainer";
 
 
 export default {
     name: "Debug",
-    components: {TraceBox, Trace, OperandWrapper},
+    components: {TraceContainer, ToolBoxContainer, OperandWrapper},
     props: ['id'],
     data() {
 
@@ -378,20 +326,13 @@ export default {
             pages: 0,
             pageSize: 20,
             total: 0,
-            inputCurrentSearch: '',
-            form: {
-                address: '',
-                insType: '',
-                instruction: '',
-                skipHead: true,
 
-            },
             tbMemHeight: '0.1px',
-            itemComponent: TBBlock,
+
             tbloading: true,
-            addressloading: true,
+
             loading: true,
-            radio: '1',
+
             mTipSeen: false,
             mTipSeenId: -1,
             simpleTbBlocks: [],
@@ -412,12 +353,9 @@ export default {
                 userid: '',
 
             },
-            searched: false,
             tbBlocks: [],
             keywords: '',
-            searchResults: [],
-            currentSearch: 1,
-            resultsNum: 0,
+
             showDrawer: false,
             //选中IR1之后需要记录的信息
             currentTB: -1,
@@ -430,6 +368,51 @@ export default {
         }
     },
     methods: {
+        //**********父子组件通信函数**********
+        /**
+         * 设置TBContainer的loading状态，参数由子组件传入
+         * @param loading
+         */
+        setLoading(loading) {
+            this.tbloading = loading
+        },
+        /**
+         * 设置选中的关键字，由子组件更新
+         * @param keyword
+         */
+        setKeyword(keyword) {
+            this.keywords = keyword
+        },
+
+        //**********状态设置函数**********
+        hideTheHead() {
+            this.hideHead = !this.hideHead
+        },
+        clickShowDrawer() {
+            this.showDrawer = true
+        },
+
+        //**********搜索相关函数**********
+        /**
+         * 清除TB块中选中的关键字
+         */
+        clearSelect() {
+            document.getElementsByName("tbblock").forEach(e => {
+                var instance = new Mark(e)
+                instance.unmark();
+            })
+        },
+        /**
+         * 选中TB块中的关键字，在调用函数前应该先设置keyword
+         */
+        selectSearch() {
+            document.getElementsByName("tbblock").forEach(e => {
+                var instance = new Mark(e)
+                instance.mark(this.keywords);
+            })
+        },
+
+
         IR1MouseEnter(tbindex, ir1id, map) {
             this.currentTB = tbindex
             this.selectIR2Start = map[ir1id]
@@ -440,21 +423,19 @@ export default {
             this.selectIR2Start = -1
             this.selectIR2End = -1
         },
-        getClassName(tbindex, ir2id) {
-
-            if (tbindex !== this.currentTB) {
-                return "normalIR2"
-            }
-            if (ir2id >= this.selectIR2Start && ir2id <= this.selectIR2End) {
-                return "selectIR2"
-            }
-            return "normalIR2"
-        },
+        /**
+         * 取消固定TB块
+         * @param block
+         */
         clearblock(block) {
             let a = this.fixblocks.indexOf(block)
             this.fixblocks.splice(a, 1)
             this.$message.success("已取消固定")
         },
+        /**
+         * 固定TB块
+         * @param block
+         */
         fixBlock(block) {
             var exist = false
             this.fixblocks.forEach(e => {
@@ -470,36 +451,16 @@ export default {
                 this.$message.success("固定成功！")
             }
         },
-        toThousand(num = 0) {
-            return num.toString().replace(/\d+/, function (n) {
-                return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
-            })
-        },
-        onClearSearch() {
-            this.currentSearch = 1
-            this.resultsNum = 0
-            this.searchResults = []
-            this.keywords = ''
-            this.searched = false
-            this.form = {
-                address: '',
-                instruction: '',
-            }
-            this.inputCurrentSearch = 1
-            this.clearSelect()
-            this.$message.success("已重置搜索")
-        },
+        /**
+         * 点击TB块中的地址
+         * 同步更新子组件中输入框的内容
+         * @param address
+         */
         addressClick(address) {
-            this.radio = '1'
-            this.form.address = address
+            this.$refs.toolbox.searchType = '1'
+            this.$refs.toolbox.searchText = address
         },
-        currentSearchChange() {
-            if (parseInt(this.inputCurrentSearch) > this.resultsNum) {
-                this.inputCurrentSearch = this.resultsNum
-            }
-            this.currentSearch = this.inputCurrentSearch
-            this.jumpTarget(this.currentSearch)
-        },
+
         getTbBlockRange() {
             var c = this.currentPage
             let start = (c - 1) * 20
@@ -507,111 +468,8 @@ export default {
             let s = 'TB-' + start + ' ~ TB-' + end
             return s
         },
-        searchAddress() {
 
 
-            if (this.form.address === '') {
-                this.$message.error("搜索不可以为空")
-                this.searched = false
-                return
-            }
-            this.keywords = this.form.address
-            this.addressloading = true
-            this.tbloading = true
-            this.$axios.get(basic_url + '/debug/search/address', {
-                params: {
-                    ltid: this.id,
-                    address: this.form.address,
-                    skipHead: true
-                }
-            }).then(e => {
-                if (e.data.total === 0) {
-                    this.$message.success("没有查询到结果")
-                    this.searched = false
-                    this.tbloading = false
-                    this.addressloading = false
-                    return
-                }
-                this.searchResults = e.data.results
-                this.resultsNum = e.data.total
-                this.selectSearch()
-                this.searched = true;
-                this.addressloading = false
-                this.tbloading = false
-            })
-        },
-        searchInstruction() {
-            if (this.form.insType === '') {
-                this.$message.error("请选择指令类型")
-                this.searched = false
-                return
-            }
-            if (this.form.instruction === '') {
-                this.$message.error("请输入搜索指令")
-                this.searched = false
-                return
-            }
-            this.keywords = this.form.instruction
-
-            this.addressloading = true
-            this.tbloading = true
-            this.$axios.get(basic_url + '/debug/search/instruction', {
-                params: {
-                    type: parseInt(this.form.insType),
-                    ltid: this.id,
-                    instruction: this.form.instruction,
-                    skipHead: true
-                }
-            }).then(e => {
-                if (e.data.total === 0) {
-                    this.$message.success("没有查询到结果")
-                    this.searched = false
-                    return
-                }
-                this.searchResults = e.data.results
-                this.resultsNum = e.data.total
-                this.selectSearch()
-                this.searched = true;
-                this.addressloading = false
-                this.tbloading = false
-            })
-
-        },
-        //搜索函数
-        onSubmitSearch() {
-            //处理两种搜索
-            //搜索前先清楚上一次搜索的结果
-            this.clearSelect()
-            this.currentSearch = 1
-            this.resultsNum = 0
-            this.searchResults = []
-            this.keywords = ''
-            this.inputCurrentSearch = 1
-            if (this.radio === '1') {
-                this.searchAddress()
-            } else {
-                this.searchInstruction()
-            }
-
-
-        },
-        hideTheHead() {
-            this.hideHead = !this.hideHead
-        },
-        clearSelect() {
-            document.getElementsByName("tbblock").forEach(e => {
-                var instance = new Mark(e)
-                instance.unmark();
-            })
-
-        },
-        selectSearch() {
-            document.getElementsByName("tbblock").forEach(e => {
-                var instance = new Mark(e)
-                instance.mark(this.keywords);
-            })
-            console.log(this.keywords)
-        },
         mouseenter(mTipSeenId) {
             this.mTipSeen = true
             this.mTipSeenId = mTipSeenId
@@ -621,43 +479,7 @@ export default {
             this.mTipSeenId = -1
         },
 
-        nextResult() {
 
-            if (this.currentSearch === this.resultsNum) {
-                this.currentSearch = 1
-            } else {
-                this.currentSearch++;
-            }
-            this.inputCurrentSearch = this.currentSearch
-            this.jumpTarget(this.currentSearch)
-        },
-
-        previousResult() {
-            if (this.currentSearch === 1) {
-                this.currentSearch = this.resultsNum
-            } else {
-
-                this.currentSearch--;
-            }
-            this.inputCurrentSearch = this.currentSearch
-            this.jumpTarget(this.currentSearch)
-
-        },
-        jumpTarget(resultIndex) {
-            //印射相差1
-            let resultT = this.searchResults[resultIndex - 1]
-            let tbid = resultT.tbid
-            let selectID = resultT.selectID
-            this.selectSearchResult(tbid, selectID)
-            // console.log(resultIndex)
-        },
-        selectSearchResult(tbid, selectID) {
-
-            this.jumpTB2(tbid, selectID)
-        },
-        clickShowDrawer() {
-            this.showDrawer = true
-        },
         //点击head事件
         clickHeadM() {
             //不在当前页面
@@ -688,15 +510,6 @@ export default {
                 document.getElementById("lt-head").scrollIntoView(this.scrollIntoViewOptions)
             })
         },
-        isNumber(val) {
-            var regPos = /^\d+(\.\d+)?$/;
-            var regNeg = /^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$/;
-            if (regPos.test(val) && regNeg.test(val)) {
-                return true;
-            } else {
-                return false;
-            }
-        },
         clickJumpTB() {
             this.$prompt('请输入你想要跳转的TB块ID', '提示', {
                 confirmButtonText: '确定',
@@ -710,14 +523,14 @@ export default {
                     this.$message.error("超出范围！")
                     return;
                 }
-                this.jumpTB1(value)
+                this.jumpTB(value)
                 this.$message({
                     type: 'success',
                     message: '跳转成功'
                 });
             })
         },
-        jumpTB1(tbindex) {
+        jumpTB(tbindex) {
             /*
             获取TB块处于第几页
             一共total个
@@ -764,7 +577,12 @@ export default {
                 })
             }
         },
-        jumpTB2(tbindex, selectID) {
+        /**
+         * 跳转到对应的tb块并且选中
+         * @param tbindex
+         * @param selectID
+         */
+        jumpTBAndSelect(tbindex, selectID) {
             /*
             获取TB块处于第几页
             一共total个
@@ -795,15 +613,11 @@ export default {
                     }
                 ).then(e => {
                     this.clearSelect()
-                    // console.log(e)
-
                     that.tbBlocks = e.data.records
-
                 }).then(e => {
                     this.selectSearch()
                     that.tbloading = false
                     document.getElementById(selectID).scrollIntoView(this.scrollIntoViewOptions)
-
                 })
             }
         },
@@ -852,11 +666,19 @@ export default {
             this.clientStartX = nowClientX;
         },
 
+
+        //工具类函数
+        toThousand(num = 0) {
+            return num.toString().replace(/\d+/, function (n) {
+                return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
+            })
+        },
+
     },
     mounted() {
         const container = document.getElementById('debug-container');
 
-        this.width = container.scrollWidth / 2 +'px'
+        this.width = container.scrollWidth / 2 + 'px'
         // this.letfDom = this.$refs.letfDom;
         // let moveDom = this.$refs.moveDom;
         //
@@ -1138,40 +960,6 @@ export default {
     background-color: #fffbe7;
 }
 
-#load {
-    z-index: 9;
-    width: 30px;
-    animation: loading 3s linear infinite;
-}
-
-#load #loading-inner {
-    stroke-dashoffset: 0;
-    stroke-dasharray: 200;
-    stroke-width: 5;
-    stroke-miterlimit: 5;
-    stroke-linecap: round;
-    animation: loading-circle 2s linear infinite;
-    stroke: #00adb5;
-    fill: transparent;
-}
-
-@keyframes loading {
-    0% {
-        transform: rotate(0);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes loading-circle {
-    0% {
-        stroke-dashoffset: 0;
-    }
-    100% {
-        stroke-dashoffset: -400;
-    }
-}
 
 
 .circle-transition-enter,

@@ -12,36 +12,6 @@
 
 
         </div>
-        <div class="mform" v-if="uid!==-1">
-            <div class="mform-item">
-                <div class="mform-title">
-                    绘制起点(TB块ID):
-                </div>
-                <div class="mform-input">
-                    <el-input size="mini" v-model="startid"/>
-                </div>
-            </div>
-            <div class="mform-item">
-                <div class="mform-title">
-                    向后搜索步长:
-                </div>
-                <div class="mform-input">
-                    <el-input size="mini" v-model="backwardDepth"/>
-                </div>
-            </div>
-            <div class="mform-item">
-                <div class="mform-title">
-                    向前搜索步长:
-                </div>
-                <div class="mform-input">
-                    <el-input size="mini" v-model="forwardDepth"/>
-                </div>
-            </div>
-
-            <div class="mform-title">
-                <el-button size="mini" type="primary" @click="paint">绘制</el-button>
-            </div>
-        </div>
         <Trace :traceData="data" v-if="uid!==-1" :jump-t-b="jumpTB"/>
     </div>
 </template>
@@ -52,7 +22,7 @@ import {basic_url} from "@/request/request";
 import MUpload from "@/components/MUpload";
 
 export default {
-    name: "TraceBox",
+    name: "TraceContainer",
     props: ['ltlog', 'jumpTB'],
     components: {MUpload, Trace},
     data() {
@@ -151,7 +121,7 @@ export default {
             nodess.forEach(ti => {
                 var nn = {
                     address: ti.address,
-                    id:  ti.id.toString(),
+                    id: ti.id.toString(),
                     tbaddress: ti.tbaddress,
                     tbindex: ti.tbindex,
                     tbtype: ti.tbtype,
@@ -197,30 +167,7 @@ export default {
 </script>
 
 <style scoped>
-.mform-item {
-    display: flex;
-    align-items: center;
-    margin-top: 5px;
-}
 
-
-.mform {
-    user-select:none;
-    top: 80px;
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-}
-
-.mform-title {
-    font-size: 14px;
-}
-
-.mform-input {
-    margin-left: 5px;
-    margin-right: 20px;
-    width: 80px;
-}
 
 .trace-upload {
     display: flex;
