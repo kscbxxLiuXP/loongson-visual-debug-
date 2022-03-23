@@ -10,7 +10,7 @@ import OfflineDebug from "@/views/Debug/OfflineDebug";
 import {Message} from "element-ui";
 import Debug from "@/views/Debug/Debug";
 import SearchScroll from "@/views/SearchScroll";
-import TraceTest from "@/components/Trace/TraceTest";
+import AntvTest from "@/components/Trace/AntvTest";
 
 Vue.use(Router)
 
@@ -58,10 +58,11 @@ const router = new Router({
                     name: 'OfflineDebug',
                     component: OfflineDebug,
                 },
+
                 {
-                    path: '/tracetest',
-                    name: 'TraceTest',
-                    component: TraceTest,
+                    path: '/antv',
+                    name: 'AntvTest',
+                    component: AntvTest,
                 },
                 {
                     path: '/debug/:id',

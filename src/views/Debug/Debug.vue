@@ -1,235 +1,229 @@
 <template>
-    <el-container style="display: flex;flex-direction: column">
-        <div style="display: flex;flex-direction: column;padding: 20px;padding-bottom: 5px;">
-            <div>
-                <el-form :model="form" size="mini" ref="form" label-width="45px">
-                    <div style="display: flex">
-                        <el-form-item>
-                            <el-radio v-model="radio" label="1">按地址搜索</el-radio>
-                            <el-radio v-model="radio" label="2">按指令搜索</el-radio>
-                        </el-form-item>
-                        <el-form-item style="margin-left: 20px" label="地址:" v-if="radio==='1'">
-                            <el-input v-model="form.address" style="width: 250px" clearable>
-                            </el-input>
-                        </el-form-item>
-                        <div style="display: flex;margin-left: 20px" v-if="radio==='2'">
-                            <el-form-item label-width="72px" label="指令类型:">
-                                <el-select style="width: 150px" v-model="form.insType" placeholder="请选择指令类型">
-                                    <el-option label="全选" value="1">
-                                    </el-option>
-                                    <el-option label="x86" value="2"></el-option>
-                                    <el-option label="LoongArch" value="3"></el-option>
-                                </el-select>
-                            </el-form-item>
-                            <el-form-item label="指令:" style="margin-left: 10px">
-                                <el-input v-model="form.instruction" clearable>
-
-                                </el-input>
-                            </el-form-item>
-                        </div>
-
-                        <el-form-item label-width="0" style="margin-left: 20px">
-                            <el-checkbox v-model="form.skipHead" label="跳过头部信息检索" name="skipHead"></el-checkbox>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-button type="primary" @click="onSubmitSearch">搜索</el-button>
-                            <el-button type="primary" @click="onClearSearch">重置</el-button>
-                        </el-form-item>
-
-                    </div>
-
-
-                </el-form>
-            </div>
-            <div
-                style="background-color: #f7f8f9;padding: 5px;font-size: 14px;display: flex;align-items: center;border-radius: 10px">
-                <div style="line-height: 30px;margin-left: 10px">
-                    日志文件共{{ toThousand(ltlog.line) }}行， 解析了共{{ toThousand(simpleTbBlocks.length) }}个TB块
-                </div>
-                <el-button size="mini" style="margin-left: 10px" @click="clickHeadM">跳转到日志头部</el-button>
-                <el-button size="mini" style="margin-left: 10px" @click="clickJumpTB">跳转到TB块</el-button>
-                <el-button size="mini" style="margin-left: 10px" @click="clickShowDrawer">已固定TB块</el-button>
-            </div>
-            <div v-if="searched"
-                 style="height: 38px;margin-top: 10px;display: flex;align-items: center;border-radius: 5px;background-color: #f7f8f9;padding: 5px;position: relative">
-                <transition name="shadow-transition">
-                    <div class='popContainer' v-if="addressloading"/>
-                </transition>
-
-                <svg id="load" x="0px" y="0px" viewBox="0 0 150 150" :style="{ width: addressloading?'30px':'0' }"
-                     style="transition: all 300ms" >
-                    <circle id="loading-inner" cx="75" cy="75" r="45"/>
-                </svg>
-
-
-                <div style="background-color: white;padding: 2px 10px;border-radius: 10px;margin-left: 10px">
-                    检索结果:
-                </div>
-
-                <div style="margin-left: 10px">
-                    共搜索到
-                </div>
-                <div style="line-height: normal;vertical-align:middle">{{ toThousand(resultsNum) }}处</div>
+    <el-container id="debug-container">
+        <el-aside :width="width" class="lf" ref="letfDom">
+            <div style="position: absolute; top:20px;display: flex;flex-direction: column;padding-bottom: 5px;">
                 <div>
-                    ，当前位于
+                    <el-radio v-model="radio" label="1">按地址搜索</el-radio>
+                    <el-radio v-model="radio" label="2">按指令搜索</el-radio>
+                    <div v-if="radio==='1'">
+                        <el-input size="mini" placeholder="地址" v-model="form.address" style="width: 250px" clearable>
+                        </el-input>
+                    </div>
+
+                    <div style="display: flex;" v-if="radio==='2'">
+
+                        <el-select size="mini" v-model="form.insType" placeholder="请选择指令类型">
+                            <el-option label="全选" value="1">
+                            </el-option>
+                            <el-option label="x86" value="2"></el-option>
+                            <el-option label="LoongArch" value="3"></el-option>
+                        </el-select>
+                        <el-input size="mini" v-model="form.instruction" placeholder="指令" clearable/>
+
+                    </div>
+                    <el-button type="primary" size="mini" @click="onSubmitSearch">搜索</el-button>
+                    <el-button type="primary" size="mini" @click="onClearSearch">重置</el-button>
                 </div>
-                <el-input-number size="mini"
-                                 controls-position="right" :min="1"
-                                 :max="resultsNum"
-                                 style="width: 100px;margin-left: 10px"
-                                 @keyup.enter.native="currentSearchChange"
-                                 v-model="inputCurrentSearch"/>
-                <div style="margin-left: 10px">
-                    / {{ toThousand(resultsNum) }}
+
+                <div v-if="searched"
+                     style="height: 38px;margin-top: 10px;display: flex;align-items: center;border-radius: 5px;background-color: #f7f8f9;padding: 5px;position: relative">
+                    <transition name="shadow-transition">
+                        <div class='popContainer' v-if="addressloading"/>
+                    </transition>
+
+                    <svg id="load" x="0px" y="0px" viewBox="0 0 150 150" :style="{ width: addressloading?'30px':'0' }"
+                         style="transition: all 300ms">
+                        <circle id="loading-inner" cx="75" cy="75" r="45"/>
+                    </svg>
+                    <div style="background-color: white;padding: 2px 10px;border-radius: 10px;margin-left: 10px">
+                        检索结果:
+                    </div>
+
+                    <div style="margin-left: 10px">
+                        共搜索到
+                    </div>
+                    <div style="line-height: normal;vertical-align:middle">{{ toThousand(resultsNum) }}处</div>
+                    <div>
+                        ，当前位于
+                    </div>
+                    <el-input-number size="mini"
+                                     controls-position="right" :min="1"
+                                     :max="resultsNum"
+                                     style="width: 100px;margin-left: 10px"
+                                     @keyup.enter.native="currentSearchChange"
+                                     v-model="inputCurrentSearch"/>
+                    <div style="margin-left: 10px">
+                        / {{ toThousand(resultsNum) }}
+                    </div>
+                    <div style="margin-left: 20px">
+                        <el-button size="mini" @click="previousResult">上一处</el-button>
+                        <el-button size="mini" @click="nextResult">下一处</el-button>
+                    </div>
                 </div>
-                <div style="margin-left: 20px">
-                    <el-button size="mini" @click="previousResult">上一处</el-button>
-                    <el-button size="mini" @click="nextResult">下一处</el-button>
-                </div>
+
             </div>
-
-        </div>
-
-        <el-main class="mmcontainer load-container" >
-            <transition name="shadow-transition">
-                <div class='popContainer' v-show="tbloading"></div>
-            </transition>
-
-            <div class="boxLoading" v-show="tbloading"/>
-
-            <div style="height: 100%;overflow-y: scroll">
-                <!---------TB块头部 ST--------->
-                <div id="lt-head" class="lt-head" v-if="currentPage===1">
+            <TraceBox style="flex:1;" :ltlog="ltlog" :traceid="ltlog.traced?ltlog.traceid:-1" :jump-t-b="jumpTB1"/>
+            <div class="touch-div" ref="moveDom">
+                <div class="circle" :key="'circle'+i" v-for=" i in 6"></div>
+            </div>
+        </el-aside>
+        <el-container class="rt">
+            <el-main class="mmcontainer load-container">
+                <!-- 遮罩 -->
+                <transition name="shadow-transition">
+                    <div class='popContainer' v-show="tbloading"></div>
+                </transition>
+                <!--加载动画-->
+                <div class="boxLoading" v-show="tbloading"/>
+                <!--主体-->
+                <div style="height: 100%;overflow-y: scroll" class="target-scroll">
                     <div
-                        class="tbblock-title"
-                    >
-                        <div style="display: flex;margin-left: 10px">
-                            <div
-                                style="width: 6px;height: 6px;background-color: #c2c2c2;border-radius: 100px;margin-left: 3px"
-                                :key="i" v-for="i in 3"/>
+                        style="background-color: #f7f8f9;padding: 5px;font-size: 14px;display: flex;align-items: center;border-radius: 10px;border: #e6e6e6 1px solid;margin-bottom: 10px;margin-top: 5px">
+                        <div style="line-height: 30px;margin-left: 10px">
+                            日志文件共{{ toThousand(ltlog.line) }}行， 解析了共{{ toThousand(simpleTbBlocks.length) }}个TB块
                         </div>
-                        <div style="margin-left: 10px;display: flex;align-items: center">
-                            <div>
-                                头部信息
-                            </div>
-                            <div>
-                                <el-button style="margin-left: 10px" size="mini" @click="hideTheHead()">{{
-                                        hideHead ? '显示头部信息' : '隐藏头部信息'
-                                    }}
-                                </el-button>
-                            </div>
-
-                        </div>
-
+                        <el-button size="mini" style="margin-left: 10px" @click="clickHeadM">跳转到日志头部</el-button>
+                        <el-button size="mini" style="margin-left: 10px" @click="clickJumpTB">跳转到TB块</el-button>
+                        <el-button size="mini" style="margin-left: 10px" @click="clickShowDrawer">已固定TB块</el-button>
                     </div>
-                    <div v-show="!hideHead" v-bind:id="'head-line-'+index" :key="'head'+index" style="font-size: 16px"
-                         v-for="(item,index) in head.headtext">
-                        {{ item }}
-                    </div>
-
-                </div>
-                <!---------TB块头部 ED--------->
-                <!---------整个TB块ST--------->
-                <div :key="'tbblock-wrap-'+index" v-for="(item,index) in tbBlocks" class="tbblock-wrapper">
-                    <!---------TB块标题部分ST--------->
-                    <div v-bind:id="'TB-'+ item.tbindex" class="tbblock-title">
-                        <div style="display: flex;margin-left: 10px">
-                            <div
-                                style="width: 6px;height: 6px;background-color: #c2c2c2;border-radius: 100px;margin-left: 3px"
-                                :key="i" v-for="i in 3"/>
-                        </div>
-                        <div style="margin-left: 10px;display: flex;align-items: center">
-                            <div>
-                                <el-button @click="fixBlock(item)" size="mini" type="primary"
-                                           style="height: 25px;padding: 0 5px" icon=""><i class="fa fa-thumb-tack"
-                                                                                          aria-hidden="true"></i>
-                                </el-button>
+                    <!---------TB块头部 ST--------->
+                    <div id="lt-head" class="lt-head" v-if="currentPage===1">
+                        <div
+                            class="tbblock-title"
+                        >
+                            <div style="display: flex;margin-left: 10px">
+                                <div
+                                    style="width: 6px;height: 6px;background-color: #c2c2c2;border-radius: 100px;margin-left: 3px"
+                                    :key="i" v-for="i in 3"/>
                             </div>
-                            <div style="margin-left: 10px">
-                                TB - {{ item.tbindex }}
-                            </div>
-                            <div style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #20a7ff">
-                                {{ item.tBAddress }}
-                            </div>
-                            <div
-                                style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #7c37cb;font-size: 14px">
-                                IR1 Num = {{ item.iR1Num }}
-                            </div>
-                            <div
-                                style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #7c37cb;font-size: 14px">
-                                IR2 Num = {{ item.iR2Num }}
-                            </div>
-
-                        </div>
-                    </div>
-                    <!---------TB块标题部分ED--------->
-
-                    <!---------TB块内容部分ST--------->
-                    <div class="tbblock-content-wrapper">
-                        <!---------TB块左边部分ST--------->
-                        <div style="width: 50%;border-right: #B3C0D1 solid 1px" class="tbblock-content-left">
-                            <!---------一条IR2指令ST--------->
-                            <!--                        getClassName(item.tbindex,i.id)-->
-                            <div
-                                class="normalIR2"
-                                v-bind:class="(item.tbindex===currentTB&&i.id>=selectIR2Start&&i.id<=selectIR2End)?'selectIR2':'normalIR2'"
-                                :key="'ir2' +ii"
-                                v-for="(i,ii) in item.iR2Instr" style="margin-top: 3px">
-                                <div name="tbblock" style="display: flex" v-bind:id="`TB-${item.tbindex}-ir2-${i.id}`">
-                                    <div style="color: #bebebe;width: 100px">{{ i.address }}</div>
-                                    <div style="width: 100px;color: #990faf">{{ i.instruction.operator }}</div>
-                                    <OperandWrapper style="width: 100px;margin-left: 20px"
-                                                    :callback="addressClick" :contents="i.instruction.operand"/>
+                            <div style="margin-left: 10px;display: flex;align-items: center">
+                                <div>
+                                    头部信息
                                 </div>
-                            </div>
-                            <!---------一条IR2指令ED--------->
-                        </div>
-                        <!---------TB块左边部分ED--------->
-
-                        <!---------TB块右边部分ST--------->
-                        <div style="width: 50%" class="tbblock-content-right">
-                            <!---------一条IR1指令ST--------->
-                            <div @mouseenter="IR1MouseEnter(item.tbindex,ii,item.iR2Map)"
-                                 class="normalIR1"
-                                 @mouseleave="IR1MouseLeave()"
-                                 :key="'ir1'+ii"
-                                 v-for="(i,ii) in item.iR1Instr" style="margin-top: 3px">
-                                <div name="tbblock" style="display: flex" v-bind:id="`TB-${item.tbindex}-ir1-${i.id}`">
-                                    <div style="color: #bebebe;width: 90px">{{ i.address }}</div>
-                                    <div style="width: 50px;color: #990faf">{{ i.instruction.operator }}</div>
-                                    <OperandWrapper style="width: 300px;margin-left: 20px"
-                                                    :callback="addressClick" :contents="i.instruction.operand"/>
+                                <div>
+                                    <el-button style="margin-left: 10px" size="mini" @click="hideTheHead()">{{
+                                            hideHead ? '显示头部信息' : '隐藏头部信息'
+                                        }}
+                                    </el-button>
                                 </div>
-                            </div>
-                            <!---------一条IR1指令ED--------->
-                        </div>
-                        <!---------TB块右边部分ED--------->
-                    </div>
-                    <!---------TB块内容部分ED--------->
 
+                            </div>
+
+                        </div>
+                        <div v-show="!hideHead" v-bind:id="'head-line-'+index" :key="'head'+index"
+                             style="font-size: 16px"
+                             v-for="(item,index) in head.headtext">
+                            {{ item }}
+                        </div>
+
+                    </div>
+                    <!---------TB块头部 ED--------->
+                    <!---------整个TB块ST--------->
+                    <div :key="'tbblock-wrap-'+index" v-for="(item,index) in tbBlocks" class="tbblock-wrapper">
+                        <!---------TB块标题部分ST--------->
+                        <div v-bind:id="'TB-'+ item.tbindex" class="tbblock-title">
+                            <div style="display: flex;margin-left: 10px">
+                                <div
+                                    style="width: 6px;height: 6px;background-color: #c2c2c2;border-radius: 100px;margin-left: 3px"
+                                    :key="i" v-for="i in 3"/>
+                            </div>
+                            <div style="margin-left: 10px;display: flex;align-items: center">
+                                <div>
+                                    <el-button @click="fixBlock(item)" size="mini" type="primary"
+                                               style="height: 25px;padding: 0 5px" icon=""><i class="fa fa-thumb-tack"
+                                                                                              aria-hidden="true"></i>
+                                    </el-button>
+                                </div>
+                                <div style="margin-left: 10px">
+                                    TB - {{ item.tbindex }}
+                                </div>
+                                <div style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #20a7ff">
+                                    {{ item.tBAddress }}
+                                </div>
+                                <div
+                                    style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #7c37cb;font-size: 14px">
+                                    IR1 Num = {{ item.iR1Num }}
+                                </div>
+                                <div
+                                    style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #7c37cb;font-size: 14px">
+                                    IR2 Num = {{ item.iR2Num }}
+                                </div>
+
+                            </div>
+                        </div>
+                        <!---------TB块标题部分ED--------->
+
+                        <!---------TB块内容部分ST--------->
+                        <div class="tbblock-content-wrapper">
+                            <!---------TB块左边部分ST--------->
+                            <div style="width: 50%;border-right: #B3C0D1 solid 1px" class="tbblock-content-left">
+                                <!---------一条IR2指令ST--------->
+                                <!--                        getClassName(item.tbindex,i.id)-->
+                                <div
+                                    class="normalIR2"
+                                    v-bind:class="(item.tbindex===currentTB&&i.id>=selectIR2Start&&i.id<=selectIR2End)?'selectIR2':'normalIR2'"
+                                    :key="'ir2' +ii"
+                                    v-for="(i,ii) in item.iR2Instr" style="margin-top: 3px">
+                                    <div name="tbblock" style="display: flex"
+                                         v-bind:id="`TB-${item.tbindex}-ir2-${i.id}`">
+                                        <div style="color: #bebebe;width: 100px">{{ i.address }}</div>
+                                        <div style="width: 100px;color: #990faf">{{ i.instruction.operator }}</div>
+                                        <OperandWrapper style="width: 100px;margin-left: 20px"
+                                                        :callback="addressClick" :contents="i.instruction.operand"/>
+                                    </div>
+                                </div>
+                                <!---------一条IR2指令ED--------->
+                            </div>
+                            <!---------TB块左边部分ED--------->
+
+                            <!---------TB块右边部分ST--------->
+                            <div style="width: 50%" class="tbblock-content-right">
+                                <!---------一条IR1指令ST--------->
+                                <div @mouseenter="IR1MouseEnter(item.tbindex,ii,item.iR2Map)"
+                                     class="normalIR1"
+                                     @mouseleave="IR1MouseLeave()"
+                                     :key="'ir1'+ii"
+                                     v-for="(i,ii) in item.iR1Instr" style="margin-top: 3px">
+                                    <div name="tbblock" style="display: flex"
+                                         v-bind:id="`TB-${item.tbindex}-ir1-${i.id}`">
+                                        <div style="color: #bebebe;width: 90px">{{ i.address }}</div>
+                                        <div style="width: 30px;color: #990faf">{{ i.instruction.operator }}</div>
+                                        <OperandWrapper style="width: 300px;margin-left: 20px"
+                                                        :callback="addressClick" :contents="i.instruction.operand"/>
+                                    </div>
+                                </div>
+                                <!---------一条IR1指令ED--------->
+                            </div>
+                            <!---------TB块右边部分ED--------->
+                        </div>
+                        <!---------TB块内容部分ED--------->
+
+                    </div>
+                    <!---------整个TB块ED--------->
                 </div>
-                <!---------整个TB块ED--------->
+
+            </el-main>
+            <!---------悬浮分页组件ST--------->
+            <div
+                style="position: absolute;bottom: 10px;background-color: #f7f8f9;left: calc(50% - 300px);padding: 5px 10px;border-radius: 10px;display: flex;align-items: center">
+                <div style="background-color: white;padding: 6px 10px;font-size: 14px">{{ getTbBlockRange() }}</div>
+                <el-pagination
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page.sync="currentPage"
+                    :page-size="pageSize"
+                    layout="prev, pager, next, jumper"
+                    :total="total">
+                </el-pagination>
             </div>
+            <!---------悬浮分页组件ED--------->
+            <el-backtop target=".target-scroll"></el-backtop>
 
-        </el-main>
+        </el-container>
 
-        <!---------悬浮分页组件ST--------->
-        <div
-            style="position: fixed;bottom: 10px;background-color: #f7f8f9;left: 38%;padding: 5px 10px;border-radius: 10px;display: flex;align-items: center">
-            <div style="background-color: white;padding: 6px 10px;font-size: 14px">{{ getTbBlockRange() }}</div>
-            <el-pagination
-                @size-change="handleSizeChange"
-                @current-change="handleCurrentChange"
-                :current-page.sync="currentPage"
-                :page-size="pageSize"
-                layout="prev, pager, next, jumper"
-                :total="total">
-            </el-pagination>
-        </div>
-        <!---------悬浮分页组件ED--------->
 
         <!---------浮动内存空间ST--------->
-        <div style="width: 100px;border: #96979a 1px solid;position: fixed;top: 270px;right: 35px;height: 620px">
+        <div style="width: 100px;border: #96979a 1px solid;position: fixed;top: 20%;right: 35px;height: 620px">
             <div style="background-color: white;border-bottom: #96979a 1px solid;text-align: center">
                 内存空间
             </div>
@@ -367,11 +361,13 @@ import {basic_url} from "@/request/request";
 import TBBlock from "@/views/Debug/TBBlock";
 import Mark from "mark.js";
 import OperandWrapper from "@/components/OperandWrapper/OperandWrapper";
+import Trace from "@/components/Trace/Trace";
+import TraceBox from "@/components/Trace/TraceBox";
 
 
 export default {
     name: "Debug",
-    components: {OperandWrapper},
+    components: {TraceBox, Trace, OperandWrapper},
     props: ['id'],
     data() {
 
@@ -409,9 +405,12 @@ export default {
                 headid: '',
                 line: '',
                 size: '',
+                traced: false,
+                traceid: '-1',
                 uid: '',
                 uploadtime: '',
                 userid: '',
+
             },
             searched: false,
             tbBlocks: [],
@@ -424,6 +423,9 @@ export default {
             currentTB: -1,
             selectIR2Start: -1,
             selectIR2End: -1,
+            letfDom: null,
+            clientStartX: 0,
+            width: ''
 
         }
     },
@@ -831,9 +833,46 @@ export default {
                 this.total = e.data.total
                 this.pages = e.data.pages
             })
-        }
+        },
+        moveHandle(nowClientX, letfDom) {
+            let computedX = nowClientX - this.clientStartX;
+            let leftBoxWidth = parseInt(this.width);
+            let changeWidth = leftBoxWidth + computedX;
+
+            if (changeWidth < 280) {
+                changeWidth = 280;
+            }
+
+            if (changeWidth > 800) {
+                changeWidth = 800;
+            }
+            let width = changeWidth + "px"
+            this.width = width
+
+            this.clientStartX = nowClientX;
+        },
+
     },
     mounted() {
+        const container = document.getElementById('debug-container');
+
+        this.width = container.scrollWidth / 2 +'px'
+        // this.letfDom = this.$refs.letfDom;
+        // let moveDom = this.$refs.moveDom;
+        //
+        // moveDom.onmousedown = e => {
+        //     this.clientStartX = e.clientX;
+        //     e.preventDefault();
+        //
+        //     document.onmousemove = e => {
+        //         this.moveHandle(e.clientX, this.letfDom);
+        //     };
+        //
+        //     document.onmouseup = e => {
+        //         document.onmouseup = null;
+        //         document.onmousemove = null;
+        //     };
+        // };
 
         if (this.$route.query.page === undefined)
             this.currentPage = 1
@@ -878,6 +917,46 @@ export default {
 </script>
 
 <style scoped>
+.rt {
+    position: relative;
+}
+
+.lf {
+    position: relative;
+    display: flex;
+    flex-flow: column nowrap;
+    overflow: hidden;
+}
+
+.touch-div {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    right: 0;
+    width: 10px;
+    top: 0;
+    height: 100%;
+    background-color: #fafafa;
+    cursor: col-resize;
+    transition: all 300ms;
+}
+
+.touch-div:hover {
+    width: 12px;
+    background-color: #dfdfdf;
+
+}
+
+.touch-div .circle {
+    margin-top: 5px;
+    width: 3px;
+    height: 3px;
+    border-radius: 150px;
+    background-color: #B3C0D1
+}
+
 .popContainer {
     position: absolute;
     width: 100%;
@@ -892,7 +971,7 @@ export default {
 
 .mmcontainer {
     padding-left: 0;
-    margin-left: 20px;
+    margin-left: 5px;
     padding-top: 0;
     padding-right: 0;
     padding-bottom: 0
@@ -1045,12 +1124,12 @@ export default {
 }
 
 .normalIR2 {
-    padding-left: 40px;
+    padding-left: 20px;
     transition: all 300ms;
 }
 
 .normalIR1 {
-    padding-left: 40px;
+    padding-left: 10px;
     background-color: white;
     transition: all 300ms;
 }
@@ -1098,7 +1177,6 @@ export default {
 .circle-transition-enter,
 .circle-transition-leave-to {
     opacity: 0;
-    /*transform: translateX(100px);*/
 }
 
 .circle-transition-enter-active,
@@ -1106,39 +1184,10 @@ export default {
     transition: all 0.4s ease;
 }
 
-/*.circle-transition-enter-active {*/
-/*    animation: circle-transition-in .2s;*/
-/*}*/
-
-/*.circle-transition-leave-active {*/
-/*    animation: circle-transition-out .2s;*/
-/*}*/
-
-/*@keyframes circle-transition-in {*/
-/*    0% {*/
-/*        width: 0;*/
-/*    }*/
-
-/*    100% {*/
-/*        width: 30px;*/
-/*    }*/
-/*}*/
-
-/*@keyframes circle-transition-out {*/
-/*    0% {*/
-/*        width: 30px;*/
-/*    }*/
-
-/*    100% {*/
-/*        width: 0;*/
-/*    }*/
-/*}*/
-
 
 .shadow-transition-enter,
 .shadow-transition-leave-to {
     opacity: 0;
-    /*transform: translateX(100px);*/
 }
 
 .shadow-transition-enter-active,

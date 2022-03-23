@@ -1,12 +1,12 @@
 <template>
-    <div style="width: 200px;display: flex" v-if="cons.length!==0">
+    <div style="width: 200px;display: flex;" v-if="cons.length!==0">
         <div :key="'operand'+index" v-for="(item,index) in cons">
             <span style="margin-right: 10px" v-if="index!==0">,</span>
             <span style="color: #232323" v-if="item.type===1">{{ item.content }}</span>
             <span style="color: lightcoral" v-if="item.type===2">{{ item.content }}</span>
             <span class="operand-address" @click="callback(item.content)" style="color: #ff8d02"
                   v-if="item.type===3">{{ item.content }}</span>
-            <span style="color: lightseagreen" v-if="item.type===4">{{ item.content }}</span>
+            <span style="color: lightseagreen;word-wrap:break-word ;" v-if="item.type===4">{{ item.content }}</span>
 
         </div>
     </div>

@@ -52,13 +52,6 @@
                     <el-tag type="success" size="small" v-if="scope.row.traced===true">
                         已上传
                     </el-tag>
-                    <el-button
-                        style="margin-left: 10px"
-                        v-if="scope.row.traced===true"
-                        type="primary"
-                        size="mini"
-                        @click="showTrace(scope.row.traceid)">查看
-                    </el-button>
                     <el-tag size="small" v-if="scope.row.traced===false">
                         未上传
                     </el-tag>
@@ -109,39 +102,28 @@
             :visible.sync="dialogVisible"
             width="600px"
             :before-close="handleClose">
-            <div class="offline-wrapper">
-                <el-upload
-                    :show-file-list="false"
-                    :on-success="onSuccess"
-                    :on-error="onError"
-                    :before-upload="beforeUpload"
-                    :disabled="uploading"
-                    :action="uploadAddress()">
-                    <div class="offline">
-                        <div class="offline-icon">
-                            <i v-bind:class="icon"></i>
-                        </div>
-                        <div class="offline-text">{{ text }}</div>
-                    </div>
+            <MUpload
+                :address="uploadAddress()"
+                :tip-text="'Trace'"
+                :before-upload-callback="beforeUploadcallback"
+                :fail-callback="failcallback"
+                :success-callback="successcallBack"
+            />
 
-                </el-upload>
-            </div>
         </el-dialog>
-        <Trace :visible="traceVisible" :close="closeTrace" :traceid="traceid"/>
 
     </el-main>
 </template>
 
 <script>
 import {basic_url} from "@/request/request";
-import Trace from "@/components/Trace/TraceDialog";
+import MUpload from "@/components/MUpload";
 
 export default {
     name: "History",
-    components: {Trace},
+    components: {MUpload},
     data() {
         return {
-            traceVisible: false,
             tableData: [],
             currentPage: 1,
             pages: 0,
@@ -151,20 +133,23 @@ export default {
             dialogVisible: false,
             uploadUid: -1,
             uploading: false,
-            icon: "fa fa-upload",
-            text: "上传Trace文件",
             traceid: -1,
         }
     },
     methods: {
-        showTrace(id) {
-            this.traceid = id
-            this.traceVisible = true
+        successcallBack(response) {
+            this.uploading = false
+            this.dialogVisible = false
+            this.getData()
         },
-        closeTrace() {
-            this.traceid = -1
-            this.traceVisible = false
+        failcallback() {
+            this.uploading = false
         },
+        beforeUploadcallback() {
+
+            this.uploading = true
+        },
+
         toThousand(num = 0) {
             return num.toString().replace(/\d+/, function (n) {
                 return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
@@ -214,34 +199,10 @@ export default {
             if (this.uploading) {
                 this.$message.error("正在上传中！")
             } else {
-
                 done()
             }
         },
 
-        // eslint-disable-next-line no-unused-vars
-        onSuccess(response, file, fileList) {
-            this.icon = "fa fa-check"
-            this.text = '上传成功！';
-            clearTimeout(this.timer);  //清除延迟执行
-            this.timer = setTimeout(() => {   //设置延迟执行
-                this.uploading = false
-                this.dialogVisible = false
-                this.getData()
-            }, 1500);
-        },
-        // eslint-disable-next-line no-unused-vars
-        onError(err, file, fileList) {
-            this.uploading = false;
-            this.icon = 'fa fa-close';
-            this.text = '重新上传Trace文件';
-        },
-        // eslint-disable-next-line no-unused-vars
-        beforeUpload(file) {
-            this.uploading = true;
-            this.icon = 'fa fa-circle-o-notch fa-spin';
-            this.text = '正在上传Trace并解析中，请保持网络通畅';
-        },
     },
     mounted() {
         this.getData()
@@ -256,41 +217,6 @@ export default {
 </script>
 
 <style scoped>
-.offline-wrapper {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.offline {
-    width: 500px;
-    height: 300px;
-    /*border: #ff8d02 1px solid;*/
-    border-radius: 10px;
-    background-color: #f7f8f9;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    transition: all 300ms;
-}
-
-.offline-icon {
-    text-align: center;
-    font-size: 80px;
-}
-
-.offline-text {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 25px;
-}
-
-.offline:hover {
-    background-color: #fcce9e;
-    color: white;
-    cursor: pointer;
-}
 
 .load-container {
     position: relative;
