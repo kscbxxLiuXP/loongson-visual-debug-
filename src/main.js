@@ -7,7 +7,6 @@ import VueRouter from "vue-router";
 import axios from "axios";
 import router from "@/router";
 
-import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
 Vue.prototype.$message = Message;
 Vue.prototype.$axios = axios

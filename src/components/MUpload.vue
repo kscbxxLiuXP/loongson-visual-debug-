@@ -45,14 +45,16 @@ export default {
             this.uploading = false;
             this.icon = 'fa fa-close';
             this.text = '重新上传' + this.tipText + '文件';
-            this.failCallback()
+            if (this.failCallback)
+                this.failCallback()
         },
         // eslint-disable-next-line no-unused-vars
         beforeUpload(file) {
             this.uploading = true;
             this.icon = 'fa fa-circle-o-notch fa-spin';
             this.text = '正在上传' + this.tipText + '并解析中，请保持网络通畅';
-            this.beforeUploadCallback()
+            if (this.beforeUploadCallback)
+                this.beforeUploadCallback()
         },
     }
 }

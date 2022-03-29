@@ -7,7 +7,11 @@ import G6, {Minimap} from '@antv/g6';
 
 export default {
     name: "Trace",
-    props: ['traceData', 'jumpTB'],
+    props: [
+        //已经处理过的图数据
+        'traceDataProcessed',
+        'jumpTB'
+    ],
     data() {
         return {
             data: {
@@ -67,9 +71,6 @@ export default {
             var minimap = new Minimap({
                 size: [200, 150],
             });
-            const button = document.createElement('button');
-            button.innerHTML = `查看最短路径`;
-            document.getElementById('container').appendChild(button);
             const tooltip = new G6.Tooltip({
                 offsetX: 10,
                 offsetY: 10,
@@ -81,7 +82,6 @@ export default {
                     const outDiv = document.createElement('div');
                     outDiv.style.width = 'fit-content';
                     let model = e.item.getModel()
-                    console.log(e.item._cfg)
                     if (e.item.getType() === 'edge') {
                         let source = e.item._cfg.sourceNode._cfg.model
                         let target = e.item._cfg.targetNode._cfg.model
@@ -192,7 +192,6 @@ export default {
                 },
                 fitView: true,
             });
-
             const clearStates = () => {
                 graph.getNodes().forEach((node) => {
                     graph.clearItemStates(node);
@@ -207,47 +206,6 @@ export default {
             });
 
 
-            button.addEventListener('click', (e) => {
-                const selectedNodes = graph.findAllByState('node', 'selected');
-                if (selectedNodes.length !== 2) {
-                    alert('Please select TWO nodes!\n\r请选择有且两个节点！');
-                    return;
-                }
-                clearStates();
-                const {findShortestPath} = G6.Algorithm;
-                // path 为其中一条最短路径，allPath 为所有的最短路径
-                const {path, allPath} = findShortestPath(
-                    this.data,
-                    selectedNodes[0].getID(),
-                    selectedNodes[1].getID(),
-                );
-
-                const pathNodeMap = {};
-                path.forEach((id) => {
-                    const pathNode = graph.findById(id);
-                    pathNode.toFront();
-                    graph.setItemState(pathNode, 'highlight', true);
-                    pathNodeMap[id] = true;
-                });
-                graph.getEdges().forEach((edge) => {
-                    const edgeModel = edge.getModel();
-                    const source = edgeModel.source;
-                    const target = edgeModel.target;
-                    const sourceInPathIdx = path.indexOf(source);
-                    const targetInPathIdx = path.indexOf(target);
-                    if (sourceInPathIdx === -1 || targetInPathIdx === -1) return;
-                    if (Math.abs(sourceInPathIdx - targetInPathIdx) === 1) {
-                        graph.setItemState(edge, 'highlight', true);
-                    } else {
-                        graph.setItemState(edge, 'inactive', true);
-                    }
-                });
-                graph.getNodes().forEach((node) => {
-                    if (!pathNodeMap[node.getID()]) {
-                        graph.setItemState(node, 'inactive', true);
-                    }
-                });
-            });
 
             graph.on('edge:mouseenter', (evt) => {
                 const {item} = evt;
@@ -277,6 +235,58 @@ export default {
                     graph.changeSize(container.scrollWidth, container.scrollHeight);
                 };
             this.graph = graph
+        },
+        drawPath() {
+            let graph = this.graph
+            const clearStates = () => {
+                graph.getNodes().forEach((node) => {
+                    graph.clearItemStates(node);
+                });
+                graph.getEdges().forEach((edge) => {
+                    graph.clearItemStates(edge);
+                });
+            };
+
+            const selectedNodes = graph.findAllByState('node', 'selected');
+            if (selectedNodes.length !== 2) {
+                alert('Please select TWO nodes!\n\r请选择有且两个节点！');
+                return;
+            }
+            clearStates();
+            const {findShortestPath} = G6.Algorithm;
+            // path 为其中一条最短路径，allPath 为所有的最短路径
+            const {path, allPath} = findShortestPath(
+                this.data,
+                selectedNodes[0].getID(),
+                selectedNodes[1].getID(),
+            );
+
+            const pathNodeMap = {};
+            path.forEach((id) => {
+                const pathNode = graph.findById(id);
+                pathNode.toFront();
+                graph.setItemState(pathNode, 'highlight', true);
+                pathNodeMap[id] = true;
+            });
+            graph.getEdges().forEach((edge) => {
+                const edgeModel = edge.getModel();
+                const source = edgeModel.source;
+                const target = edgeModel.target;
+                const sourceInPathIdx = path.indexOf(source);
+                const targetInPathIdx = path.indexOf(target);
+                if (sourceInPathIdx === -1 || targetInPathIdx === -1) return;
+                if (Math.abs(sourceInPathIdx - targetInPathIdx) === 1) {
+                    graph.setItemState(edge, 'highlight', true);
+                } else {
+                    graph.setItemState(edge, 'inactive', true);
+                }
+            });
+            graph.getNodes().forEach((node) => {
+                if (!pathNodeMap[node.getID()]) {
+                    graph.setItemState(node, 'inactive', true);
+                }
+            });
+
         }
     },
     mounted() {
@@ -284,7 +294,7 @@ export default {
     },
 
     watch: {
-        traceData: function (newVal, oldVal) {
+        traceDataProcessed: function (newVal, oldVal) {
 
             let nodes = newVal.nodes
             let edges = newVal.edges

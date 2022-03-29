@@ -59,6 +59,23 @@
                                @click="uploadTrace(scope.row.uid)">
                         上传
                     </el-button>
+                    <el-popconfirm
+                        confirm-button-text='好的'
+                        cancel-button-text='不用了'
+                        icon="el-icon-info"
+                        icon-color="red"
+                        title="确定删除这个Trace吗？"
+                        @confirm="deleteTrace(scope.$index, scope.row)"
+                    >
+                        <el-button
+                            v-if="scope.row.traced===true"
+                            style="margin-left: 10px"
+                            slot="reference"
+                            size="mini"
+                            type="danger"
+                            >删除
+                        </el-button>
+                    </el-popconfirm>
 
 
                 </template>
@@ -75,14 +92,15 @@
                         cancel-button-text='不用了'
                         icon="el-icon-info"
                         icon-color="red"
-                        title="这是一段内容确定删除吗？"
+                        @confirm="handleDelete(scope.$index, scope.row)"
+                        title="确定删除这个日志吗？"
                     >
                         <el-button
                             style="margin-left: 10px"
                             slot="reference"
                             size="mini"
                             type="danger"
-                            @click="handleDelete(scope.$index, scope.row)">删除
+                        >删除
                         </el-button>
                     </el-popconfirm>
 
@@ -137,6 +155,23 @@ export default {
         }
     },
     methods: {
+        deleteTrace(index, row) {
+            this.loading = true
+
+            this.$axios.get(basic_url + '/trace/delete',
+                {
+                    params:
+                        {
+                            ltid: row.uid,
+                            traceid: row.traceid,
+                        }
+                }
+            ).then(e => {
+                this.$message.success("删除成功！")
+                this.loading = false
+                this.getData()
+            })
+        },
         successcallBack(response) {
             this.uploading = false
             this.dialogVisible = false

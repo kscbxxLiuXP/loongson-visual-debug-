@@ -4,15 +4,28 @@
             <ToolBoxContainer
                 ref="toolbox"
                 :ltid="this.id"
-
                 :clear-select="clearSelect"
                 :selectSearch="selectSearch"
                 :set-loading="setLoading"
                 :set-keyword="setKeyword"
                 :jump-t-b-and-select="jumpTBAndSelect"
+
+                :trace-data="traceData"
+                :traced="ltlog.traced"
+                :set-trace-data-processed="setTraceDataProcessed"
+                :draw-path="drawPath"
             />
-            <TraceContainer style="flex:1;" :ltlog="ltlog" :traceid="ltlog.traced?ltlog.traceid:-1"
-                            :jump-t-b="jumpTB"/>
+            <div v-if="!ltlog.traced" class="trace-upload">
+                <MUpload
+                    :small="true"
+                    :address="uploadAddress()"
+                    :tip-text="'Trace'"
+                    :success-callback="successcallBack"
+                />
+            </div>
+            <Trace ref="trace" :trace-data-processed="traceDataProcessed" v-if="ltlog.traced" :jump-t-b="jumpTB"/>
+
+
             <div class="touch-div" ref="moveDom">
                 <!--<div class="circle" :key="'circle'+i" v-for=" i in 6"></div>-->
             </div>
@@ -296,29 +309,25 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
-
         </el-drawer>
     </el-container>
-
 </template>
 
 <script>
 import {basic_url} from "@/request/request";
 import Mark from "mark.js";
 import OperandWrapper from "@/components/OperandWrapper/OperandWrapper";
-import ToolBoxContainer from "@/views/Debug/ToolBoxContainer";
-import TraceContainer from "@/components/Trace/TraceContainer";
-
+import ToolBoxContainer from "@/views/Debug/ToolBox/ToolBoxContainer";
+import MUpload from "@/components/MUpload";
+import Trace from "@/components/Trace/Trace";
 
 export default {
     name: "Debug",
-    components: {TraceContainer, ToolBoxContainer, OperandWrapper},
+    components: {Trace, MUpload, ToolBoxContainer, OperandWrapper},
     props: ['id'],
     data() {
-
         return {
             fixblocks: [],
             hideHead: true,
@@ -326,13 +335,9 @@ export default {
             pages: 0,
             pageSize: 20,
             total: 0,
-
             tbMemHeight: '0.1px',
-
             tbloading: true,
-
             loading: true,
-
             mTipSeen: false,
             mTipSeenId: -1,
             simpleTbBlocks: [],
@@ -363,7 +368,19 @@ export default {
             selectIR2End: -1,
             letfDom: null,
             clientStartX: 0,
-            width: ''
+            width: '',
+
+            //原始的所有trace数据
+            traceData: [],
+            //已经处理过的，用于画图的数据
+            traceDataProcessed: {
+                nodes: [
+                    {id: '', address: '', tbaddress: '', tbindex: '', tbtype: '',},
+                ],
+                edges: [
+                    {source: '', target: ''},
+                ],
+            },
 
         }
     },
@@ -382,6 +399,18 @@ export default {
          */
         setKeyword(keyword) {
             this.keywords = keyword
+        },
+        /**
+         * 由子组件TraceToolBox调用此函数，更新Trace图所需的data
+         */
+        setTraceDataProcessed(traceDataProcessed) {
+            this.traceDataProcessed = traceDataProcessed
+        },
+        /**
+         *
+         */
+        drawPath(){
+           this.$refs.trace.drawPath()
         },
 
         //**********状态设置函数**********
@@ -412,6 +441,17 @@ export default {
             })
         },
 
+        //*********Trace文件上传函数********
+        successcallBack(response) {
+            let trace = response
+            this.ltlog.traced = true
+            this.traceData = trace
+        },
+
+        uploadAddress: function () {
+            return basic_url + '/uploadTrace?ltid=' + this.id
+        },
+        //*********Trace文件上传函数********
 
         IR1MouseEnter(tbindex, ir1id, map) {
             this.currentTB = tbindex
@@ -457,8 +497,7 @@ export default {
          * @param address
          */
         addressClick(address) {
-            this.$refs.toolbox.searchType = '1'
-            this.$refs.toolbox.searchText = address
+            this.$refs.toolbox.setAddress(address)
         },
 
         getTbBlockRange() {
@@ -630,6 +669,7 @@ export default {
             this.getData()
         },
         getData() {
+
             this.tbloading = true
             this.$axios.get(basic_url + '/tbblocks',
                 {
@@ -673,12 +713,27 @@ export default {
                 return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
             })
         },
+        /**
+         * 根据Traceid获取Trace
+         * @param id
+         */
+        getTraceData(id) {
+            this.$axios.get(basic_url + "/trace/get",
+                {
+                    params: {
+                        id: id
+                    }
+                }
+            ).then(e => {
+                this.traceData = e.data
+            })
+        },
 
     },
+
     mounted() {
         const container = document.getElementById('debug-container');
-
-        this.width = container.scrollWidth / 2 + 'px'
+        this.width = container.scrollWidth / 2+80 + 'px'
         // this.letfDom = this.$refs.letfDom;
         // let moveDom = this.$refs.moveDom;
         //
@@ -702,24 +757,17 @@ export default {
             this.currentPage = parseInt(this.$route.query.page)
 
 
-        // this.loading = true
-
         this.$axios.get(basic_url + '/debug', {params: {id: this.id}}).then(e => {
-            // this.loading = false
-            // this.tbBlocks = e.data.tbBlocks
             this.simpleTbBlocks = e.data.simpleTbBlocks
             this.head = e.data.head
             this.ltlog = e.data.ltlog
             let a = 585 / e.data.simpleTbBlocks.length
-            let transformVal = Number(a).toFixed(3)
-
-            let realVal = transformVal.substring(0, transformVal.length - 1)
-
-            // num.toFixed(3)获取的是字符串
-            // this.tbMemHeight =Number(realVal) +'px'
-            // this.tbMemHeight =Number(realVal) +'px'
             this.tbMemHeight = a + 'px'
-            // console.log(this.tbMemHeight)
+
+        }).then(e => {
+            if (this.ltlog.traced) {
+                this.getTraceData(this.ltlog.traceid)
+            }
         })
         this.getData()
         this.$nextTick(function () {
@@ -961,7 +1009,6 @@ export default {
 }
 
 
-
 .circle-transition-enter,
 .circle-transition-leave-to {
     opacity: 0;
@@ -981,5 +1028,13 @@ export default {
 .shadow-transition-enter-active,
 .shadow-transition-leave-active {
     transition: all 0.4s ease;
+}
+
+.trace-upload {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 }
 </style>

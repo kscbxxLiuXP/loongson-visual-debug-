@@ -1,105 +1,57 @@
 <template>
-    <div class="tool-box-container">
-        <!-- 搜索框-->
-        <div class="search-box">
-            <div class="box-title">
-                <div>搜索</div>
-                <div class="expand-button" @click="expandSearch=!expandSearch" v-if="expandSearch">
-                    <i class="fa fa-chevron-up"/>
-                </div>
-                <div class="expand-button" @click="expandSearch=!expandSearch" v-if="!expandSearch">
-                    <i class="fa fa-chevron-down"/>
-                </div>
+    <div class="search-box">
+        <div class="box-title">
+            <div>搜索</div>
+            <div class="expand-button" @click="expandSearch=!expandSearch" v-if="expandSearch">
+                <i class="fa fa-chevron-up"/>
             </div>
-
-            <div class="search-body" :style="{maxHeight: expandSearch?'100px':0}">
-                <transition name="shadow-transition">
-                    <div class='popContainer' v-if="loading"/>
-                </transition>
-                <el-input size="mini" placeholder="搜索内容" v-model="searchText" style="width: 280px;border-radius: 0"
-                          clearable>
-                    <el-select v-model="searchType" slot="prepend" style="width: 80px">
-                        <el-option label="地址" value="1"></el-option>
-                        <el-option label="指令" value="2"></el-option>
-                    </el-select>
-                    <el-button slot="append" icon="el-icon-search" @click="onSubmitSearch()"></el-button>
-                </el-input>
-
-                <!--搜索结果-->
-                <div style="position: relative;display: flex;align-items: center;padding: 10px 0">
-                    <svg id="load" x="0px" y="0px" viewBox="0 0 150 150" :style="{ width: loading?'30px':'0' }"
-                         style="transition: all 300ms">
-                        <circle id="loading-inner" cx="75" cy="75" r="45"/>
-                    </svg>
-                    <el-input-number size="mini"
-                                     :disabled="resultsNum===0||loading"
-                                     :controls="false"
-                                     :min="1"
-                                     :max="resultsNum"
-                                     style="width: 100px;margin-left: 10px"
-                                     @keyup.enter.native="currentSearchChange"
-                                     v-model="inputCurrentSearch"/>
-                    <div style="margin-left: 10px">
-                        / {{ resultsNum === 0 ? '--' : toThousand(resultsNum) }}
-                    </div>
-                    <div style="margin-left: 20px;display: flex;align-items: center">
-                        <div v-bind:class="(resultsNum===0||loading)?'disabled-button':'expand-button'"
-                             @click="nextResult">
-                            <i class="el-icon-arrow-up"/>
-                        </div>
-                        <div v-bind:class="(resultsNum===0||loading)?'disabled-button':'expand-button'"
-                             class="expand-button" @click="previousResult">
-                            <i class="el-icon-arrow-down"/>
-                        </div>
-                        <div v-bind:class="loading?'disabled-button':'expand-button'" @click="onClearSearch">
-                            <i class="el-icon-close"/>
-                        </div>
-                    </div>
-                </div>
+            <div class="expand-button" @click="expandSearch=!expandSearch" v-if="!expandSearch">
+                <i class="fa fa-chevron-down"/>
             </div>
-
-
         </div>
-        <!-- 跟踪流表单       -->
-        <div class="trace-form" v-if="uid!==-1">
-            <div class="box-title">
-                <div>绘图</div>
-                <div class="expand-button" @click="expandPaint=!expandPaint" v-if="expandPaint">
-                    <i class="fa fa-chevron-up"/>
-                </div>
-                <div class="expand-button" @click="expandPaint=!expandPaint" v-if="!expandPaint">
-                    <i class="fa fa-chevron-down"/>
-                </div>
-            </div>
-            <div class="search-body" :style="{maxHeight: expandPaint?'200px':0}">
 
-                <div class="trace-form-item">
-                    <div class="trace-form-title">
-                        绘制起点(TB块ID):
-                    </div>
-                    <div class="trace-form-input">
-                        <el-input size="mini" v-model="startid"/>
-                    </div>
-                </div>
-                <div class="trace-form-item">
-                    <div class="trace-form-title">
-                        向后搜索步长:
-                    </div>
-                    <div class="trace-form-input">
-                        <el-input size="mini" v-model="backwardDepth"/>
-                    </div>
-                </div>
-                <div class="trace-form-item">
-                    <div class="trace-form-title">
-                        向前搜索步长:
-                    </div>
-                    <div class="trace-form-input">
-                        <el-input size="mini" v-model="forwardDepth"/>
-                    </div>
-                </div>
+        <div class="search-body" :style="{maxHeight: expandSearch?'100px':0}">
+            <transition name="shadow-transition">
+                <div class='popContainer' v-if="loading"/>
+            </transition>
+            <el-input size="mini" placeholder="搜索内容" v-model="searchText" style="width: 280px;border-radius: 0"
+                      clearable>
+                <el-select v-model="searchType" slot="prepend" style="width: 80px">
+                    <el-option label="地址" value="1"></el-option>
+                    <el-option label="指令" value="2"></el-option>
+                </el-select>
+                <el-button slot="append" icon="el-icon-search" @click="onSubmitSearch()"></el-button>
+            </el-input>
 
-                <div class="trace-form-title">
-                    <el-button size="mini" type="primary" @click="paint">绘制</el-button>
+            <!--搜索结果-->
+            <div style="position: relative;display: flex;align-items: center;padding: 10px 0">
+                <svg id="load" x="0px" y="0px" viewBox="0 0 150 150" :style="{ width: loading?'30px':'0' }"
+                     style="transition: all 300ms">
+                    <circle id="loading-inner" cx="75" cy="75" r="45"/>
+                </svg>
+                <el-input-number size="mini"
+                                 :disabled="resultsNum===0||loading"
+                                 :controls="false"
+                                 :min="1"
+                                 :max="resultsNum"
+                                 style="width: 100px;margin-left: 10px"
+                                 @keyup.enter.native="currentSearchChange"
+                                 v-model="inputCurrentSearch"/>
+                <div style="margin-left: 10px">
+                    / {{ resultsNum === 0 ? '--' : toThousand(resultsNum) }}
+                </div>
+                <div style="margin-left: 20px;display: flex;align-items: center">
+                    <div v-bind:class="(resultsNum===0||loading)?'disabled-button':'expand-button'"
+                         @click="previousResult">
+                        <i class="el-icon-arrow-up"/>
+                    </div>
+                    <div v-bind:class="(resultsNum===0||loading)?'disabled-button':'expand-button'"
+                          @click="nextResult">
+                        <i class="el-icon-arrow-down"/>
+                    </div>
+                    <div v-bind:class="loading?'disabled-button':'expand-button'" @click="onClearSearch">
+                        <i class="el-icon-close"/>
+                    </div>
                 </div>
             </div>
         </div>
@@ -110,8 +62,8 @@
 import {basic_url} from "@/request/request";
 
 export default {
-    name: "ToolBoxContainer",
-    props: [
+    name: "SearchToolBox",
+    props:[
         //data
         'ltid',
 
@@ -128,13 +80,11 @@ export default {
         'setKeyword',
         //跳转到TB并且选择
         'jumpTBAndSelect',
-
     ],
-    data() {
+    data(){
         return {
             //当前search是否展开
-            expandSearch: true,
-            expandPaint: true,
+            expandSearch: false,
             searchType: '1',
             //搜索框内容
             searchText: '',
@@ -152,7 +102,7 @@ export default {
             keywords: ''
         }
     },
-    methods: {
+    methods:{
         //搜索函数
         onSubmitSearch() {
             //判断是否为空
@@ -284,35 +234,21 @@ export default {
             this.clearSelect()
             this.$message.success("已重置搜索")
         },
-
-
         //工具类
         toThousand(num = 0) {
             return num.toString().replace(/\d+/, function (n) {
                 return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
             })
         },
-
     }
-
-
 }
 </script>
 
 <style scoped>
-.search-body {
-    overflow-y: hidden;
-    transition: all 300ms;
+.disabled-button {
+    color: #c3c4c4;
+    pointer-events: none;
 }
-
-.tool-box-container {
-    position: absolute;
-    top: 20px;
-    display: flex;
-    flex-direction: column;
-    margin-left: 10px;
-}
-
 .expand-button {
     text-align: center;
     font-size: 14px;
@@ -322,12 +258,6 @@ export default {
     border-radius: 50px;
     transition: all 300ms;
 }
-
-.disabled-button {
-    color: #c3c4c4;
-    pointer-events: none;
-}
-
 .expand-button:hover {
     background-color: #ebebec;
 }
@@ -336,14 +266,6 @@ export default {
     background-color: #d3d3d4;
 }
 
-.search-box {
-    display: flex;
-    flex-direction: column;
-
-    border: #dbdcdd 1px solid;
-
-    border-radius: 5px;
-}
 
 .box-title {
     color: #727275;
@@ -354,32 +276,20 @@ export default {
     justify-content: space-between;
     align-items: center;
 }
+.search-body {
+    overflow-y: hidden;
+    transition: all 300ms;
+    position: relative;
+}
 
-.trace-form {
-    margin-top: 10px;
-    border: #dbdcdd 1px solid;
-    border-radius: 5px;
-    user-select: none;
+.search-box {
     display: flex;
     flex-direction: column;
-}
+    background-color: white;
 
-.trace-form-item {
-    display: flex;
-    align-items: center;
-    margin-top: 5px;
-}
+    border: #dbdcdd 1px solid;
 
-
-.trace-form-title {
-    font-size: 14px;
-}
-
-.trace-form-input {
-    margin-left: 5px;
-    margin-right: 20px;
-    width: 80px;
-
+    border-radius: 5px;
 }
 
 .shadow-transition-enter,
@@ -391,6 +301,7 @@ export default {
 .shadow-transition-leave-active {
     transition: all 0.4s ease;
 }
+
 #load {
     z-index: 9;
     width: 30px;
@@ -426,4 +337,15 @@ export default {
     }
 }
 
+.popContainer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    background: rgba(49, 48, 48, 0.3);
+}
 </style>

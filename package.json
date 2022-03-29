@@ -17,9 +17,7 @@
     "mark.js": "^8.11.1",
     "moment": "^2.29.1",
     "vue": "^2.6.14",
-    "vue-router": "3.5.3",
-    "vue-virtual-scroll-list": "^2.3.3",
-    "vue-virtual-scroller": "^1.0.10"
+    "vue-router": "3.5.3"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
