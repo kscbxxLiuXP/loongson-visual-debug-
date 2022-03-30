@@ -5,7 +5,17 @@
         </h2>
         <div style="color: #9195a3;font-size: 14px;display: flex;align-items: center">
             从下列表中选择一个进入调试
-            <i class="fa fa-refresh circle-button refresh-button fa-fw" @click="getOnlineList"/>
+            <el-tooltip content="刷新" placement="top-end">
+                <i class="fa fa-refresh circle-button refresh-button fa-fw" @click="getOnlineList"/>
+
+            </el-tooltip>
+            <el-popover
+                placement="top"
+                width="50"
+                trigger="hover"
+                content="管理调试过程中生成的历史Trace">
+                <i slot="reference" class="fa fa-gear circle-button refresh-button fa-fw" @click="manageTrace"/>
+            </el-popover>
 
         </div>
         <div class="online-debug-list-wrapper load-container">
@@ -21,13 +31,20 @@
                             <h4>
                                 Debug-{{ item.id }}
                             </h4>
-                            <div style="font-size: 14px">
-                                状态：准备就绪
+                            <div style="font-size: 14px;margin-left: 20px;display: flex;align-items: center">
+                                状态：
+                                <div class="debug-state-1" v-if="item.debugState===1">准备就绪</div>
+                                <div class="debug-state-2" v-if="item.debugState===2">执行中</div>
+                                <div class="debug-state-3" v-if="item.debugState===3">调试中</div>
+                                <div class="debug-state-4" v-if="item.debugState===4">已结束</div>
+                                <div class="debug-state-5" v-if="item.debugState===5">被终止</div>
+                                <div class="debug-state-6" v-if="item.debugState===6">连接丢失</div>
+
                             </div>
                         </div>
                         <div class="info">
                             <div>
-                                IP: 10.2.5.5
+                                IP: {{ item.ip }}
                             </div>
                             <div style="margin-left: 10px">
                                 创建时间: {{ item.createTime }}
@@ -35,14 +52,14 @@
                         </div>
                     </div>
                     <div class="rf">
-
-                        <i class="fa fa-play circle-button run-button fa-fw" @click="runClick(i)"/>
-                        <i class="fa fa-stop  circle-button stop-button fa-fw"/>
+                        <!-- 调试状态都可以进入，但是进入之后根据state设置按钮状态-->
+                        <i class="fa fa-play circle-button run-button fa-fw" @click="runClick(item.id)"/>
+                        <i v-if="item.debugState===2||item.debugState===3" class="fa fa-stop circle-button stop-button fa-fw"/>
                     </div>
                 </div>
             </div>
         </div>
-
+        <div style="color: #9195a3;font-size: 14px;">上一次刷新：{{ lastRefresh }}</div>
         <el-dialog title="确认进入调试" :visible.sync="outerVisible" :before-close="handleClose">
             <el-dialog
                 width="800px"
@@ -143,9 +160,13 @@ export default {
             total: 0,
             onlineList: [],
             loading: false,
+            lastRefresh: ''
         }
     },
     methods: {
+        manageTrace() {
+            this.$router.push('/trace')
+        },
         selectLtlog(index, row) {
             this.ltid = row.uid
             this.innerVisible = false
@@ -157,7 +178,9 @@ export default {
         getOnlineList() {
             this.loading = true
             this.$axios.get(basic_url + '/onlineDebug/available').then(e => {
+                console.log(e.data)
                 this.onlineList = e.data
+                this.lastRefresh = new Date()
                 this.loading = false
             })
         },
@@ -208,6 +231,49 @@ export default {
 </script>
 
 <style scoped>
+.debug-state-1 {
+    /*background-color: #9f9f9a;*/
+    background-color: #75d07d;
+    padding: 2px 5px;
+    color: white;
+    border-radius: 5px;
+}
+
+.debug-state-2 {
+    background-color: #20a7ff;
+    padding: 2px 5px;
+    color: white;
+    border-radius: 5px;
+}
+
+.debug-state-3 {
+    background-color: #20a7ff;
+    padding: 2px 5px;
+    color: white;
+    border-radius: 5px;
+}
+
+.debug-state-4 {
+    background-color: #FDAF75;
+    padding: 2px 5px;
+    color: white;
+    border-radius: 5px;
+}
+
+.debug-state-5 {
+    background-color: #F24A72;
+    padding: 2px 5px;
+    color: white;
+    border-radius: 5px;
+}
+
+.debug-state-6 {
+    background-color: #9f9f9a;
+    padding: 2px 5px;
+    color: white;
+    border-radius: 5px;
+}
+
 .od-button {
     margin: auto;
     margin-top: 10px;
@@ -296,7 +362,7 @@ export default {
 }
 
 .online-debug-list-item {
-    width: 300px;
+    width: 350px;
     display: flex;
     align-items: center;
     padding: 10px 30px;

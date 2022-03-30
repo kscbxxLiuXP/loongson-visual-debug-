@@ -21,6 +21,12 @@
                                 历史调试信息
                         </span>
                     </el-menu-item>
+                    <el-menu-item index="/trace">
+                        <i class="faa fa fa-bolt " ></i>
+                        <span slot="title" >
+                                Trace管理
+                        </span>
+                    </el-menu-item>
                     <el-submenu index="1">
                         <template slot="title">
                             <i class="el-icon-menu"></i>

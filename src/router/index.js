@@ -12,6 +12,7 @@ import Debug from "@/views/Debug/Debug";
 import SearchScroll from "@/views/SearchScroll";
 import AntvTest from "@/components/Trace/AntvTest";
 import OnlineDebugEntrance from "@/views/Debug/OnlineDebugEntrance";
+import TraceManage from "@/views/Trace/TraceManage";
 
 Vue.use(Router)
 
@@ -76,6 +77,11 @@ const router = new Router({
                     component: Debug,
                     meta: 'debug',
                     props: true,
+                },
+                {
+                    path: '/trace',
+                    name:'TraceManage',
+                    component: TraceManage,
                 },
 
             ]
