@@ -11,6 +11,7 @@ import {Message} from "element-ui";
 import Debug from "@/views/Debug/Debug";
 import SearchScroll from "@/views/SearchScroll";
 import AntvTest from "@/components/Trace/AntvTest";
+import OnlineDebugEntrance from "@/views/Debug/OnlineDebugEntrance";
 
 Vue.use(Router)
 
@@ -50,8 +51,14 @@ const router = new Router({
                 },
                 {
                     path: '/debug/online',
+                    name: 'OnlineDebugEntrance',
+                    component: OnlineDebugEntrance,
+                },
+                {
+                    path: '/debug/online/:id',
                     name: 'OnlineDebug',
                     component: OnlineDebug,
+                    props:true,
                 },
                 {
                     path: '/debug/offline',

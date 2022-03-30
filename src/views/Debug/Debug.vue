@@ -732,6 +732,7 @@ export default {
     },
 
     mounted() {
+        console.log(this.id)
         const container = document.getElementById('debug-container');
         this.width = container.scrollWidth / 2+80 + 'px'
         // this.letfDom = this.$refs.letfDom;
