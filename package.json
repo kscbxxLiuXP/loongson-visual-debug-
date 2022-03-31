@@ -17,6 +17,7 @@
     "mark.js": "^8.11.1",
     "moment": "^2.29.1",
     "vue": "^2.6.14",
+    "vue-popperjs": "^2.3.0",
     "vue-router": "3.5.3"
   },
   "devDependencies": {
