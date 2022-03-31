@@ -31,16 +31,7 @@
                             <h4>
                                 Debug-{{ item.id }}
                             </h4>
-                            <div style="font-size: 14px;margin-left: 20px;display: flex;align-items: center">
-                                状态：
-                                <div class="debug-state-1" v-if="item.debugState===1">准备就绪</div>
-                                <div class="debug-state-2" v-if="item.debugState===2">执行中</div>
-                                <div class="debug-state-3" v-if="item.debugState===3">调试中</div>
-                                <div class="debug-state-4" v-if="item.debugState===4">已结束</div>
-                                <div class="debug-state-5" v-if="item.debugState===5">被终止</div>
-                                <div class="debug-state-6" v-if="item.debugState===6">连接丢失</div>
-
-                            </div>
+                            <DebugState :debug-state="item.debugState" title="状态："/>
                         </div>
                         <div class="info">
                             <div>
@@ -54,7 +45,8 @@
                     <div class="rf">
                         <!-- 调试状态都可以进入，但是进入之后根据state设置按钮状态-->
                         <i class="fa fa-play circle-button run-button fa-fw" @click="runClick(item.id)"/>
-                        <i v-if="item.debugState===2||item.debugState===3" class="fa fa-stop circle-button stop-button fa-fw"/>
+                        <i v-if="item.debugState===2||item.debugState===3"
+                           class="fa fa-stop circle-button stop-button fa-fw"/>
                     </div>
                 </div>
             </div>
@@ -145,9 +137,12 @@
 
 <script>
 import {basic_url} from "@/request/request";
+import moment from "moment";
+import DebugState from "@/views/Debug/OnlineDebugComponent/DebugState";
 
 export default {
     name: "OnlineDebugEntrance",
+    components: {DebugState},
     data() {
         return {
             innerVisible: false,
@@ -180,7 +175,7 @@ export default {
             this.$axios.get(basic_url + '/onlineDebug/available').then(e => {
                 console.log(e.data)
                 this.onlineList = e.data
-                this.lastRefresh = new Date()
+                this.lastRefresh = moment().format("yyyy-MM-DD HH:mm:ss")
                 this.loading = false
             })
         },
@@ -231,48 +226,7 @@ export default {
 </script>
 
 <style scoped>
-.debug-state-1 {
-    /*background-color: #9f9f9a;*/
-    background-color: #75d07d;
-    padding: 2px 5px;
-    color: white;
-    border-radius: 5px;
-}
 
-.debug-state-2 {
-    background-color: #20a7ff;
-    padding: 2px 5px;
-    color: white;
-    border-radius: 5px;
-}
-
-.debug-state-3 {
-    background-color: #20a7ff;
-    padding: 2px 5px;
-    color: white;
-    border-radius: 5px;
-}
-
-.debug-state-4 {
-    background-color: #FDAF75;
-    padding: 2px 5px;
-    color: white;
-    border-radius: 5px;
-}
-
-.debug-state-5 {
-    background-color: #F24A72;
-    padding: 2px 5px;
-    color: white;
-    border-radius: 5px;
-}
-
-.debug-state-6 {
-    background-color: #9f9f9a;
-    padding: 2px 5px;
-    color: white;
-    border-radius: 5px;
-}
 
 .od-button {
     margin: auto;
@@ -356,6 +310,8 @@ export default {
 }
 
 .online-debug-list-wrapper {
+    min-height: 100px;
+    min-width: 410px;
     margin-top: 10px;
     border: black 2px solid;
     border-radius: 15px;
