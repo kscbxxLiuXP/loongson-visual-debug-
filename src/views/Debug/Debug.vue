@@ -1,6 +1,6 @@
 <template>
     <el-container id="debug-container">
-        <el-aside :width="width" class="lf" ref="letfDom">
+        <el-aside :style="{width:width}" class="lf" ref="letfDom">
             <ToolBoxContainer
                 ref="toolbox"
                 :ltid="this.id"
@@ -23,14 +23,14 @@
                 />
             </div>
             <Trace ref="trace" :trace-data-processed="traceDataProcessed" v-if="ltlog.traced" :jump-t-b="jumpTB"/>
-
-
-            <div class="touch-div" ref="moveDom">
+            <div class="touch-div" ref="moveDom" @click="clickExpand">
+                <i v-if="expand" class="el-icon-arrow-left"/>
+                <i v-if="!expand" class="el-icon-arrow-right"/>
                 <!--<div class="circle" :key="'circle'+i" v-for=" i in 6"></div>-->
             </div>
         </el-aside>
         <el-container class="rt">
-            <el-main class="mmcontainer load-container">
+            <el-main class="load-container">
                 <!-- 遮罩 -->
                 <transition name="shadow-transition">
                     <div class='popContainer' v-show="tbloading"></div>
@@ -50,9 +50,7 @@
                     </div>
                     <!---------TB块头部 ST--------->
                     <div id="lt-head" class="lt-head" v-if="currentPage===1">
-                        <div
-                            class="tbblock-title"
-                        >
+                        <div class="tbblock-title">
                             <div style="display: flex;margin-left: 10px">
                                 <div
                                     style="width: 6px;height: 6px;background-color: #c2c2c2;border-radius: 100px;margin-left: 3px"
@@ -68,104 +66,33 @@
                                         }}
                                     </el-button>
                                 </div>
-
                             </div>
-
                         </div>
-                        <div v-show="!hideHead" v-bind:id="'head-line-'+index" :key="'head'+index"
-                             style="font-size: 16px"
-                             v-for="(item,index) in head.headtext">
-                            {{ item }}
+                        <div v-if="!hideHead">
+                            <div v-bind:id="'head-line-'+index" :key="'head'+index"
+                                 style="font-size: 16px"
+                                 v-for="(item,index) in head.headtext">
+                                {{ item }}
+                            </div>
                         </div>
-
                     </div>
                     <!---------TB块头部 ED--------->
                     <!---------整个TB块ST--------->
-                    <div :key="'tbblock-wrap-'+index" v-for="(item,index) in tbBlocks" class="tbblock-wrapper">
-                        <!---------TB块标题部分ST--------->
-                        <div v-bind:id="'TB-'+ item.tbindex" class="tbblock-title">
-                            <div style="display: flex;margin-left: 10px">
-                                <div
-                                    style="width: 6px;height: 6px;background-color: #c2c2c2;border-radius: 100px;margin-left: 3px"
-                                    :key="i" v-for="i in 3"/>
-                            </div>
-                            <div style="margin-left: 10px;display: flex;align-items: center">
-                                <div>
-                                    <el-button @click="fixBlock(item)" size="mini" type="primary"
-                                               style="height: 25px;padding: 0 5px" icon=""><i class="fa fa-thumb-tack"
-                                                                                              aria-hidden="true"></i>
-                                    </el-button>
-                                </div>
-                                <div style="margin-left: 10px">
-                                    TB - {{ item.tbindex }}
-                                </div>
-                                <div style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #20a7ff">
-                                    {{ item.tBAddress }}
-                                </div>
-                                <div
-                                    style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #7c37cb;font-size: 14px">
-                                    IR1 Num = {{ item.iR1Num }}
-                                </div>
-                                <div
-                                    style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #7c37cb;font-size: 14px">
-                                    IR2 Num = {{ item.iR2Num }}
-                                </div>
+                    <TBBlockBody
+                        :tbblock-data="tbBlocks"
+                        @fixBlock="fixBlock"
+                        @addressClick="addressClick"
+                        @getRegisterInfoFromTrace="getRegisterInfoFromTrace"
 
-                            </div>
-                        </div>
-                        <!---------TB块标题部分ED--------->
+                    />
 
-                        <!---------TB块内容部分ST--------->
-                        <div class="tbblock-content-wrapper">
-                            <!---------TB块左边部分ST--------->
-                            <div style="width: 50%;border-right: #B3C0D1 solid 1px" class="tbblock-content-left">
-                                <!---------一条IR2指令ST--------->
-                                <div
-                                    class="normalIR2"
-                                    v-bind:class="(item.tbindex===currentTB&&i.id>=selectIR2Start&&i.id<=selectIR2End)?'selectIR2':'normalIR2'"
-                                    :key="'ir2' +ii"
-                                    v-for="(i,ii) in item.iR2Instr" style="margin-top: 3px">
-                                    <div name="tbblock" style="display: flex"
-                                         v-bind:id="`TB-${item.tbindex}-ir2-${i.id}`">
-                                        <div style="color: #bebebe;width: 100px">{{ i.address }}</div>
-                                        <div style="width: 100px;color: #990faf">{{ i.instruction.operator }}</div>
-                                        <OperandWrapper style="width: 100px;margin-left: 20px"
-                                                        :callback="addressClick" :contents="i.instruction.operand"/>
-                                    </div>
-                                </div>
-                                <!---------一条IR2指令ED--------->
-                            </div>
-                            <!---------TB块左边部分ED--------->
-
-                            <!---------TB块右边部分ST--------->
-                            <div style="width: 50%" class="tbblock-content-right">
-                                <!---------一条IR1指令ST--------->
-                                <div @mouseenter="IR1MouseEnter(item.tbindex,ii,item.iR2Map)"
-                                     class="normalIR1"
-                                     @mouseleave="IR1MouseLeave()"
-                                     :key="'ir1'+ii"
-                                     v-for="(i,ii) in item.iR1Instr" style="margin-top: 3px">
-                                    <div name="tbblock" style="display: flex"
-                                         v-bind:id="`TB-${item.tbindex}-ir1-${i.id}`">
-                                        <div style="color: #bebebe;width: 90px">{{ i.address }}</div>
-                                        <div style="width: 30px;color: #990faf">{{ i.instruction.operator }}</div>
-                                        <OperandWrapper style="width: 300px;margin-left: 20px"
-                                                        :callback="addressClick" :contents="i.instruction.operand"/>
-                                    </div>
-                                </div>
-                                <!---------一条IR1指令ED--------->
-                            </div>
-                            <!---------TB块右边部分ED--------->
-                        </div>
-                        <!---------TB块内容部分ED--------->
-
-                    </div>
                     <!---------整个TB块ED--------->
                 </div>
 
             </el-main>
             <!---------悬浮分页组件ST--------->
             <div
+                v-if="!expand"
                 style="position: absolute;bottom: 10px;background-color: #f7f8f9;left: calc(50% - 300px);padding: 5px 10px;border-radius: 10px;display: flex;align-items: center">
                 <div style="background-color: white;padding: 6px 10px;font-size: 14px">{{ getTbBlockRange() }}</div>
                 <el-pagination
@@ -179,12 +106,10 @@
             </div>
             <!---------悬浮分页组件ED--------->
             <el-backtop target=".target-scroll"></el-backtop>
-
         </el-container>
-
-
         <!---------浮动内存空间ST--------->
-        <MemoryFloat @clickHeadM="clickHeadM" :tb-mem-height="tbMemHeight" :simple-tb-blocks="simpleTbBlocks"
+        <MemoryFloat v-if="!expand" @clickHeadM="clickHeadM" :tb-mem-height="tbMemHeight"
+                     :simple-tb-blocks="simpleTbBlocks"
                      @jumpTB="jumpTB"/>
         <!---------浮动内存空间ED--------->
         <TBDrawer
@@ -193,6 +118,7 @@
             :fixblocks="fixblocks"
             @close="()=>{this.showDrawer=false}"
             @addressClick="addressClick"
+
         />
     </el-container>
 </template>
@@ -200,17 +126,17 @@
 <script>
 import {basic_url} from "@/request/request";
 import Mark from "mark.js";
-import OperandWrapper from "@/components/OperandWrapper/OperandWrapper";
 import ToolBoxContainer from "@/views/Debug/ToolBox/ToolBoxContainer";
 import MUpload from "@/components/MUpload";
 import Trace from "@/components/Trace/Trace";
 import MemoryFloat from "@/views/Debug/OfflineDebugComponent/MemoryFloat";
 import TBDrawer from "@/views/Debug/OfflineDebugComponent/TBDrawer";
 import './tbblock.css'
+import TBBlockBody from "@/views/Debug/OfflineDebugComponent/TBBlockBody";
 
 export default {
     name: "Debug",
-    components: {TBDrawer, MemoryFloat, Trace, MUpload, ToolBoxContainer, OperandWrapper},
+    components: {TBBlockBody, TBDrawer, MemoryFloat, Trace, MUpload, ToolBoxContainer},
     props: ['id'],
     data() {
         return {
@@ -244,7 +170,7 @@ export default {
             },
             tbBlocks: [],
             keywords: '',
-
+            expand: false,
             showDrawer: false,
             //选中IR1之后需要记录的信息
             currentTB: -1,
@@ -252,7 +178,7 @@ export default {
             selectIR2End: -1,
             letfDom: null,
             clientStartX: 0,
-            width: '',
+            width: '50%',
 
             //原始的所有trace数据
             traceData: [],
@@ -269,6 +195,23 @@ export default {
         }
     },
     methods: {
+        //从Trace文件中获取一个TB块的寄存器信息
+        getRegisterInfoFromTrace(address, callback) {
+
+            let tracelist = this.traceData.tracelist
+            let registers = null
+            for (let i = 0; i < tracelist.length; i++) {
+                let trace = tracelist[i]
+                console.log(trace.address + " " + address)
+                if (trace.address === address) {
+                    registers = trace.registers
+                    break
+                }
+            }
+            callback(registers)
+
+        },
+
         //**********父子组件通信函数**********
         /**
          * 设置TBContainer的loading状态，参数由子组件传入
@@ -304,6 +247,22 @@ export default {
         clickShowDrawer() {
             this.showDrawer = true
         },
+        clickExpand() {
+            if (this.width === '50%') {
+                this.width = '100%'
+                this.expand = true
+            } else {
+                this.width = '50%'
+                this.expand = false
+            }
+            setTimeout(() => {
+                let width = this.$refs.letfDom.$el.clientWidth
+                let height = this.$refs.letfDom.$el.clientHeight
+                this.$refs.trace.resetSize(width, height)
+            }, 100)
+
+
+        },
 
         //**********搜索相关函数**********
         /**
@@ -336,17 +295,6 @@ export default {
             return basic_url + '/uploadTrace?ltid=' + this.id
         },
         //*********Trace文件上传函数********
-
-        IR1MouseEnter(tbindex, ir1id, map) {
-            this.currentTB = tbindex
-            this.selectIR2Start = map[ir1id]
-            this.selectIR2End = map[ir1id + 1]
-        },
-        IR1MouseLeave() {
-            this.currentTB = -1
-            this.selectIR2Start = -1
-            this.selectIR2End = -1
-        },
         /**
          * 取消固定TB块
          * @param block
@@ -391,8 +339,6 @@ export default {
             let s = 'TB-' + start + ' ~ TB-' + end
             return s
         },
-
-
         //点击head事件(由子组件MemoryFloat emit触发)
         clickHeadM() {
             //不在当前页面
@@ -606,25 +552,6 @@ export default {
     },
 
     mounted() {
-        console.log(this.id)
-        const container = document.getElementById('debug-container');
-        this.width = container.scrollWidth / 2 + 80 + 'px'
-        // this.letfDom = this.$refs.letfDom;
-        // let moveDom = this.$refs.moveDom;
-        //
-        // moveDom.onmousedown = e => {
-        //     this.clientStartX = e.clientX;
-        //     e.preventDefault();
-        //
-        //     document.onmousemove = e => {
-        //         this.moveHandle(e.clientX, this.letfDom);
-        //     };
-        //
-        //     document.onmouseup = e => {
-        //         document.onmouseup = null;
-        //         document.onmousemove = null;
-        //     };
-        // };
 
         if (this.$route.query.page === undefined)
             this.currentPage = 1
@@ -662,6 +589,7 @@ export default {
 </script>
 
 <style scoped>
+
 .rt {
     position: relative;
 }
@@ -684,7 +612,7 @@ export default {
     top: 0;
     height: 100%;
     background-color: #fafafa;
-    cursor: col-resize;
+    cursor: pointer;
     transition: all 300ms;
 }
 
@@ -714,15 +642,10 @@ export default {
     background: rgba(49, 48, 48, 0.3);
 }
 
-.mmcontainer {
-    padding-left: 0;
-    margin-left: 5px;
-    padding-top: 0;
-    padding-right: 0;
-    padding-bottom: 0
-}
 
 .load-container {
+    margin-left: 5px;
+    padding: 0;
     position: relative;
 }
 

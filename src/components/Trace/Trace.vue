@@ -26,6 +26,12 @@ export default {
         }
     },
     methods: {
+        resetSize(width, height) {
+            if (this.graph !== null) {
+
+                this.graph.changeSize(width, height);
+            }
+        },
         createTrace() {
             G6.registerNode(
                 'node',
@@ -95,8 +101,9 @@ export default {
                         <div>
                             <div style='font-size: 14px;font-weight: bold'>${model.address}</div>
                             <div style='margin-top: 5px'>id: TB-${model.id}</div>
-                            <div style='margin-top: 5px;display: flex;align-items: center'>tbtype:
-                                <div style='background-color: ##fff0f6;padding: 1px 2px;margin-left: 5px;border: #ffadd2 1px solid;color: #c41d93'>${model.tbtype}</div>
+
+                            <div style='margin-top: 5px;display: flex;align-items: center' >tbtype:
+                                <div style='background-color: ##fff0f6;padding: 1px 2px;margin-left: 5px;border: #ffadd2 1px solid;color: #c41d93'>${model.tbtype===''?'无':model.tbtype}</div>
                             </div>
                         </div>`;
                     }
@@ -206,7 +213,6 @@ export default {
             });
 
 
-
             graph.on('edge:mouseenter', (evt) => {
                 const {item} = evt;
                 graph.setItemState(item, 'active', true);
@@ -290,7 +296,12 @@ export default {
         }
     },
     mounted() {
-
+        window.onresize = () => {
+            return (() => {
+                console.log("size change")
+                // this.screenWidth = document.body.clientWidth
+            })()
+        }
     },
 
     watch: {

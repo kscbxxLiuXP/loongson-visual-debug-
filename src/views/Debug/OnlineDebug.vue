@@ -156,7 +156,7 @@ export default {
                 return
             }
             this.logg("连接调试台")
-            this.websock = new WebSocket(basic_websocket+ this.id)
+            this.websock = new WebSocket(basic_websocket + this.id)
             this.websock.onmessage = this.websocketonmessage
             this.websock.onerror = this.websocketonerror
             this.websock.onopen = this.websocketonopen
@@ -219,6 +219,10 @@ export default {
                 case 7:
                     //Latx向Server主动更新状态
                     this.logg("LATX 运行结束！")
+                    break;
+                case 8:
+                    //Latx向Server发送了trace信息
+                    this.logg("收到 LATX 发送的trace信息！" + reply.trace)
                     break;
             }
             this.debugVar = reply.data

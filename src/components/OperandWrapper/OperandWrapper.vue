@@ -67,7 +67,6 @@ export default {
             cons.push(cc)
         })
         this.cons = cons
-
     }
 }
 </script>
@@ -76,7 +75,6 @@ export default {
 .operand-address {
 
 }
-
 .operand-address:hover {
     text-decoration: underline;
     cursor: pointer;
