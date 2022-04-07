@@ -184,82 +184,16 @@
 
 
         <!---------浮动内存空间ST--------->
-        <MemoryFloat @clickHeadM="clickHeadM" :tb-mem-height="tbMemHeight" :simple-tb-blocks="simpleTbBlocks" @jumpTB="jumpTB"/>
+        <MemoryFloat @clickHeadM="clickHeadM" :tb-mem-height="tbMemHeight" :simple-tb-blocks="simpleTbBlocks"
+                     @jumpTB="jumpTB"/>
         <!---------浮动内存空间ED--------->
-        <el-drawer
-            title="固定的TB块"
-            size="600px"
-            :visible.sync="showDrawer"
-        >
-            <div style="padding: 0 10px">
-                <div :key="'pin-'+index" v-for="(item,index) in fixblocks" class="tbblock-wrapper">
-                    <div class="tbblock-title">
-                        <div style="display: flex;margin-left: 10px">
-                            <div
-                                style="width: 6px;height: 6px;background-color: #c2c2c2;border-radius: 100px;margin-left: 3px"
-                                :key="i" v-for="i in 3"/>
-                        </div>
-                        <div style="margin-left: 10px;display: flex;align-items: center">
-                            <div>
-                                <el-button @click="clearblock(item)" size="mini" type="danger"
-                                           style="height: 25px;padding: 0 5px" icon=""><i class="fa fa-trash-o"
-                                                                                          aria-hidden="true"></i>
-                                </el-button>
-                            </div>
-                            <div style="margin-left: 10px">
-                                TB - {{ item.tbindex }}
-                            </div>
-                            <div style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #20a7ff">
-                                {{ item.tBAddress }}
-                            </div>
-                            <div
-                                style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #7c37cb;font-size: 14px">
-                                IR1 Num = {{ item.iR1Num }}
-                            </div>
-                            <div
-                                style="margin-left: 10px;background-color: white;padding: 2px 5px;color: #7c37cb;font-size: 14px">
-                                IR2 Num = {{ item.iR2Num }}
-                            </div>
-
-                        </div>
-                    </div>
-                    <div style="display: flex;padding: 5px 40px;flex-direction: column">
-                        <div style="border-bottom: #B3C0D1 solid 1px" class="tbblock-content-left">
-                            <!--  下面是循环每一个TB中的IR1指令                          -->
-                            <div :key="'ir2' +ii" v-for="(i,ii) in item.iR2Instr"
-                                 style="margin-top: 3px">
-                                <div style="display: flex">
-
-                                    <div style="color: #bebebe;width: 100px">{{ i.address }}</div>
-                                    <div style="width: 100px;color: #990faf">{{
-                                            i.instruction.operator
-                                        }}
-                                    </div>
-                                    <OperandWrapper style="width: 100px;margin-left: 20px"
-                                                    :callback="addressClick" :contents="i.instruction.operand"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <div :key="'ir1'+ii" v-for="(i,ii) in item.iR1Instr" style="margin-top: 3px">
-                                <div style="display: flex">
-                                    <div style="color: #bebebe;width: 90px">{{ i.address }}</div>
-                                    <div style="width: 50px;color: #990faf">{{
-                                            i.instruction.operator
-                                        }}
-                                    </div>
-                                    <div>
-                                        <!--                                        {{i.instruction.operand}}-->
-                                    </div>
-                                    <OperandWrapper style="width: 300px;margin-left: 20px"
-                                                    :callback="addressClick" :contents="i.instruction.operand"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </el-drawer>
+        <TBDrawer
+            @clearblock="clearblock"
+            :show-drawer="showDrawer"
+            :fixblocks="fixblocks"
+            @close="()=>{this.showDrawer=false}"
+            @addressClick="addressClick"
+        />
     </el-container>
 </template>
 
@@ -271,10 +205,12 @@ import ToolBoxContainer from "@/views/Debug/ToolBox/ToolBoxContainer";
 import MUpload from "@/components/MUpload";
 import Trace from "@/components/Trace/Trace";
 import MemoryFloat from "@/views/Debug/OfflineDebugComponent/MemoryFloat";
+import TBDrawer from "@/views/Debug/OfflineDebugComponent/TBDrawer";
+import './tbblock.css'
 
 export default {
     name: "Debug",
-    components: {MemoryFloat, Trace, MUpload, ToolBoxContainer, OperandWrapper},
+    components: {TBDrawer, MemoryFloat, Trace, MUpload, ToolBoxContainer, OperandWrapper},
     props: ['id'],
     data() {
         return {
@@ -852,72 +788,6 @@ export default {
     50% {
         transform: scale(1.2, 1);
     }
-}
-
-
-.lt-block {
-    border: #B3C0D1 1px solid;
-
-}
-
-.tbblock {
-    margin-top: 10px;
-}
-
-
-.lt-head {
-    position: relative;
-    border: #e6e6e6 1px solid;
-    border-radius: 8px;
-    margin-bottom: 10px;
-}
-
-.tbblock-wrapper {
-    margin-bottom: 10px;
-    border: #e6e6e6 2px solid;
-    border-radius: 8px;
-}
-
-.tbblock-title {
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    background-color: #f2f2f2;
-    color: #939292;
-    display: flex;
-    align-items: center;
-    padding: 5px 2px;
-}
-
-.tbblock-content-wrapper {
-    display: flex;
-    padding: 5px 0px;
-}
-
-.tbblock-content-left {
-
-}
-
-.tbblock-content-right {
-
-}
-
-.selectIR2 {
-    background-color: #e9f2ff;
-}
-
-.normalIR2 {
-    padding-left: 20px;
-    transition: all 300ms;
-}
-
-.normalIR1 {
-    padding-left: 10px;
-    background-color: white;
-    transition: all 300ms;
-}
-
-.normalIR1:hover {
-    background-color: #fffbe7;
 }
 
 

@@ -31,7 +31,7 @@ export default {
                     type: -1,
                     content: e
                 }
-                var f=e.trim()
+                var f = e.trim()
                 if (f[0] === '$') {
                     cc.type = 1
                 } else if (f[0] === 'i') {
@@ -54,7 +54,7 @@ export default {
                 type: -1,
                 content: e
             }
-            var f=e.trim()
+            var f = e.trim()
             if (f[0] === '$') {
                 cc.type = 1
             } else if (f[0] === 'i') {
