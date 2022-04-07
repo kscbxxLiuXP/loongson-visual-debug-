@@ -75,7 +75,7 @@
 </template>
 
 <script>
-import {basic_url} from "@/request/request";
+import {basic_url, basic_websocket} from "@/request/request";
 import MyPopover from "@/components/Popover/MyPopover";
 import Logger from "@/components/Logger/Logger";
 import DebugButton from "@/components/Button/DebugButton";
@@ -156,7 +156,7 @@ export default {
                 return
             }
             this.logg("连接调试台")
-            this.websock = new WebSocket("ws://127.0.0.1:8000/websocket/" + this.id)
+            this.websock = new WebSocket(basic_websocket+ this.id)
             this.websock.onmessage = this.websocketonmessage
             this.websock.onerror = this.websocketonerror
             this.websock.onopen = this.websocketonopen

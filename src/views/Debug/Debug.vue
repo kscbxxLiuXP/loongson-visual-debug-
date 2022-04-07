@@ -9,7 +9,6 @@
                 :set-loading="setLoading"
                 :set-keyword="setKeyword"
                 :jump-t-b-and-select="jumpTBAndSelect"
-
                 :trace-data="traceData"
                 :traced="ltlog.traced"
                 :set-trace-data-processed="setTraceDataProcessed"
@@ -185,58 +184,7 @@
 
 
         <!---------浮动内存空间ST--------->
-        <div style="width: 100px;border: #96979a 1px solid;position: fixed;top: 20%;right: 35px;height: 620px">
-            <div style="background-color: white;border-bottom: #96979a 1px solid;text-align: center">
-                内存空间
-            </div>
-            <div @mouseenter="mouseenter(-2)"
-                 @mouseleave="mouseleave()" style="position: relative">
-                <div style="text-align: center; height: 100%;cursor: pointer;font-size: 14px" class="mTB"
-                     @click="clickHeadM()">
-                    head
-                </div>
-                <div v-show="mTipSeen&&mTipSeenId===-2" class="mTBPop">
-                    head
-                </div>
-            </div>
-            <div @mouseenter="mouseenter(index)"
-                 @mouseleave="mouseleave()" :key="index" v-for="(item ,index) in simpleTbBlocks"
-                 style="position: relative">
-                <div :style="{height:tbMemHeight}" class="mTB"
-                     @click="jumpTB(item.tbindex)">
-
-                </div>
-                <div v-if="mTipSeen&&mTipSeenId===index" class="mTBPop">
-                    <div>
-                            <span style="font-size: 18px">
-                                TB{{ item.tbindex }}
-                            </span>
-                        <span>
-                                {{ item.tbaddress }}
-                            </span>
-                    </div>
-
-                    <div>
-                        IR1起始地址:<span>{{ item.startaddressir1 }}</span>
-                    </div>
-                    <div>
-                        IR1结束地址:<span>{{ item.endaddressir1 }}</span>
-                    </div>
-                    <div>
-                        IR2起始地址:<span>{{ item.startaddressir2 }}</span>
-                    </div>
-                    <div>
-                        IR2结束地址:<span>{{ item.endaddressir2 }}</span>
-                    </div>
-                    <div>
-                        IR1 num = <span style="color: #8645cb">{{ item.ir1num }}</span>
-                    </div>
-                    <div>
-                        IR2 num = <span style="color: #8645cb">{{ item.ir2num }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <MemoryFloat @clickHeadM="clickHeadM" :tb-mem-height="tbMemHeight" :simple-tb-blocks="simpleTbBlocks" @jumpTB="jumpTB"/>
         <!---------浮动内存空间ED--------->
         <el-drawer
             title="固定的TB块"
@@ -322,10 +270,11 @@ import OperandWrapper from "@/components/OperandWrapper/OperandWrapper";
 import ToolBoxContainer from "@/views/Debug/ToolBox/ToolBoxContainer";
 import MUpload from "@/components/MUpload";
 import Trace from "@/components/Trace/Trace";
+import MemoryFloat from "@/views/Debug/OfflineDebugComponent/MemoryFloat";
 
 export default {
     name: "Debug",
-    components: {Trace, MUpload, ToolBoxContainer, OperandWrapper},
+    components: {MemoryFloat, Trace, MUpload, ToolBoxContainer, OperandWrapper},
     props: ['id'],
     data() {
         return {
@@ -338,8 +287,7 @@ export default {
             tbMemHeight: '0.1px',
             tbloading: true,
             loading: true,
-            mTipSeen: false,
-            mTipSeenId: -1,
+
             simpleTbBlocks: [],
             head: {
                 headtext: '',
@@ -409,8 +357,8 @@ export default {
         /**
          *
          */
-        drawPath(){
-           this.$refs.trace.drawPath()
+        drawPath() {
+            this.$refs.trace.drawPath()
         },
 
         //**********状态设置函数**********
@@ -509,17 +457,7 @@ export default {
         },
 
 
-        mouseenter(mTipSeenId) {
-            this.mTipSeen = true
-            this.mTipSeenId = mTipSeenId
-        },
-        mouseleave() {
-            this.mTipSeen = false
-            this.mTipSeenId = -1
-        },
-
-
-        //点击head事件
+        //点击head事件(由子组件MemoryFloat emit触发)
         clickHeadM() {
             //不在当前页面
             //需要刷新数据
@@ -734,7 +672,7 @@ export default {
     mounted() {
         console.log(this.id)
         const container = document.getElementById('debug-container');
-        this.width = container.scrollWidth / 2+80 + 'px'
+        this.width = container.scrollWidth / 2 + 80 + 'px'
         // this.letfDom = this.$refs.letfDom;
         // let moveDom = this.$refs.moveDom;
         //
@@ -914,33 +852,6 @@ export default {
     50% {
         transform: scale(1.2, 1);
     }
-}
-
-.mTB {
-
-    background-color: #f7f8f9;
-    color: black;
-    transition: all 300ms;
-    text-align: center;
-}
-
-.mTB:hover {
-    background-color: lightcoral;
-    color: white;
-}
-
-.mTBPop {
-    font-size: 14px;
-    padding: 10px;
-    right: 110px;
-    bottom: 0;
-    width: 200px;
-
-    background-color: #ffffff;
-    position: absolute;
-    transition: all 300ms;
-    z-index: 999;
-    border: #B3C0D1 1px solid;
 }
 
 

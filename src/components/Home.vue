@@ -12,18 +12,18 @@
                     overflow-y: scroll
                 >
                     <el-menu-item index="/dashboard">
-                        <i class="faa fa fa-home" ></i>
+                        <i class="faa fa fa-home"></i>
                         <span slot="title" style="margin-left: 5px">主页</span>
                     </el-menu-item>
                     <el-menu-item index="/history">
-                        <i class="faa fa fa-history" ></i>
-                        <span slot="title" >
+                        <i class="faa fa fa-history"></i>
+                        <span slot="title">
                                 历史调试信息
                         </span>
                     </el-menu-item>
                     <el-menu-item index="/trace">
-                        <i class="faa fa fa-bolt " ></i>
-                        <span slot="title" >
+                        <i class="faa fa fa-bolt "></i>
+                        <span slot="title">
                                 Trace管理
                         </span>
                     </el-menu-item>
@@ -33,13 +33,13 @@
                             <span slot="title">调试</span>
                         </template>
                         <el-menu-item index="/debug/online">
-                            <i class="faa fa fa-code" ></i>
+                            <i class="faa fa fa-code"></i>
                             <span slot="title" style="margin-left: 10px">
                                 在线调试
                             </span>
                         </el-menu-item>
                         <el-menu-item index="/debug/offline">
-                            <i class="faa fa fa-bug" ></i>
+                            <i class="faa fa fa-bug"></i>
                             <span slot="title" style="margin-left: 10px">
                                 离线调试
                             </span>
@@ -51,7 +51,7 @@
 
             <el-container>
                 <el-header style="display: flex;justify-content: space-between;border-bottom: #B3C0D1 1px solid">
-                    <div @click="collapse=!collapse" class="collapse-icon">
+                    <div @click="collapseClick" class="collapse-icon">
                         <i class="el-icon-s-fold" v-if="!collapse"/>
                         <i class="el-icon-s-unfold" v-if="collapse"/>
                         <div v-if="collapse">展开</div>
@@ -86,6 +86,10 @@ export default {
         }
     },
     methods: {
+        collapseClick() {
+            this.collapse = !this.collapse
+            localStorage.setItem("collapse", this.collapse)
+        },
         logout() {
             this.$message.success("注销成功！")
 
@@ -93,10 +97,11 @@ export default {
             this.$router.push('/login')
         }
     },
-    mounted() {
-
+    created() {
+        this.collapse = localStorage.getItem("collapse") !== 'false';
     },
     computed: {
+
         key() {
             return this.$route.path + Date.now()
         },
@@ -104,7 +109,6 @@ export default {
             return localStorage.getItem('token')
         },
         avatar: function () {
-
             return localStorage.getItem('token')[0].toUpperCase()
         },
     }
