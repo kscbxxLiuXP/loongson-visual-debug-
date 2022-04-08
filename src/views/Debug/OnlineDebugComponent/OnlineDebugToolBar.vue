@@ -5,10 +5,13 @@
             IP地址:{{ debugVar.ip }}
         </div>
         <div style="margin-left: 10px">
-            当前地址:0x{{ debugVar.currentAddress }}
+            当前地址:0x{{ dec2Hex(debugVar.currentAddress) }}
         </div>
-        <div style="margin-left: 10px">
-            当前断点:0x{{ debugVar.breakPointAddress }}
+        <div style="margin-left: 10px" v-if="debugVar.breakPointAddress===-1">
+            当前断点: <span style="color: palevioletred">NULL</span>
+        </div>
+        <div style="margin-left: 10px" v-if="debugVar.breakPointAddress!==-1">
+            当前断点:0x{{ dec2Hex(debugVar.breakPointAddress) }}
         </div>
         <DebugState :debug-state="debugVar.debugState"/>
         <div class="debug-divider"/>
@@ -62,6 +65,7 @@ import DebugState from "@/views/Debug/OnlineDebugComponent/DebugState";
 import {basic_url, basic_websocket} from "@/request/request";
 
 import MyPopover from "@/components/Popover/MyPopover";
+import {dec2Hex, hex2Dec} from "@/util/HexadecimalConversion";
 
 export default {
 
@@ -78,7 +82,8 @@ export default {
         }
     },
     methods: {
-
+        dec2Hex,
+        hex2Dec,
         getDisabledState() {
             var runDisabled = true
             var stopDisabled = true
@@ -225,11 +230,12 @@ export default {
             this.initWebSocket()
         },
         setBreakPointAddress() {
-            console.log('setbreakpoint')
+            let addressDec = hex2Dec(this.breakPointAddress)
+            console.log('setbreakpoint'+addressDec)
             let data = {
                 type: 0,
                 id: parseInt(this.id),
-                address: this.breakPointAddress
+                address: addressDec
             }
             this.websock.send(JSON.stringify(data))
         },
