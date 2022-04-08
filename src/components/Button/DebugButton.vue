@@ -67,7 +67,7 @@ export default {
 
 <style scoped>
 .debug-button-forbidden {
-    color: #89898c;
+    color: #cbcbcb;
 
     pointer-events: none;
 }

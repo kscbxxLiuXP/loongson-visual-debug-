@@ -29,14 +29,13 @@
                      style="transition: all 300ms">
                     <circle id="loading-inner" cx="75" cy="75" r="45"/>
                 </svg>
-                <el-input-number size="mini"
-                                 :disabled="resultsNum===0||loading"
-                                 :controls="false"
-                                 :min="1"
-                                 :max="resultsNum"
-                                 style="width: 100px;margin-left: 10px"
-                                 @keyup.enter.native="currentSearchChange"
-                                 v-model="inputCurrentSearch"/>
+                <input type="number" placeholder="请输入"
+                       :disabled="resultsNum===0||loading"
+                       :min="1"
+                       :max="resultsNum"
+                       style="width: 60px;margin-left: 10px"
+                       @keyup.enter="currentSearchChange"
+                       v-model="inputCurrentSearch"/>
                 <div style="margin-left: 10px">
                     / {{ resultsNum === 0 ? '--' : toThousand(resultsNum) }}
                 </div>
@@ -46,7 +45,7 @@
                         <i class="el-icon-arrow-up"/>
                     </div>
                     <div v-bind:class="(resultsNum===0||loading)?'disabled-button':'expand-button'"
-                          @click="nextResult">
+                         @click="nextResult">
                         <i class="el-icon-arrow-down"/>
                     </div>
                     <div v-bind:class="loading?'disabled-button':'expand-button'" @click="onClearSearch">
@@ -63,7 +62,7 @@ import {basic_url} from "@/request/request";
 
 export default {
     name: "SearchToolBox",
-    props:[
+    props: [
         //data
         'ltid',
 
@@ -81,7 +80,7 @@ export default {
         //跳转到TB并且选择
         'jumpTBAndSelect',
     ],
-    data(){
+    data() {
         return {
             //当前search是否展开
             expandSearch: false,
@@ -102,7 +101,7 @@ export default {
             keywords: ''
         }
     },
-    methods:{
+    methods: {
         //搜索函数
         onSubmitSearch() {
             //判断是否为空
@@ -249,6 +248,7 @@ export default {
     color: #c3c4c4;
     pointer-events: none;
 }
+
 .expand-button {
     text-align: center;
     font-size: 14px;
@@ -258,6 +258,7 @@ export default {
     border-radius: 50px;
     transition: all 300ms;
 }
+
 .expand-button:hover {
     background-color: #ebebec;
 }
@@ -276,6 +277,7 @@ export default {
     justify-content: space-between;
     align-items: center;
 }
+
 .search-body {
     overflow-y: hidden;
     transition: all 300ms;
@@ -347,5 +349,32 @@ export default {
     bottom: 0;
     z-index: 10;
     background: rgba(49, 48, 48, 0.3);
+}
+input {
+    font-size: 14px;
+    border: none;
+    border-bottom: #a1a1a1 1px solid;
+    text-align: right;
+    transition: all 300ms
+}
+
+input:hover {
+    outline: 0;
+    border-bottom: #40a9ff 1px solid;
+
+}
+
+input:focus {
+    outline: 0;
+    border-bottom: #1e94ff 1px solid;
+
+}
+input:disabled {
+    outline: 0;
+    cursor: not-allowed;
+    background-color: white;
+    border-bottom: #a1a1a1 1px solid;
+
+
 }
 </style>
