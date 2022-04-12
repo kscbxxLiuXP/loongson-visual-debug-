@@ -6,7 +6,7 @@
 
         <div class="boxLoading" v-show="loading"/>
         <div style="margin-bottom: 10px">
-            历史调试信息
+            在线调试记录
         </div>
         <el-table
             border
@@ -14,68 +14,48 @@
             style="width: 100%">
             <el-table-column
                 label="序号"
-                width="50">
+                width="80">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.$index + 1 }}</span>
                 </template>
             </el-table-column>
             <el-table-column
-                label="uid"
+                label="debugid"
                 prop="uid"
-                width="50">
+                width="100"
+            >
             </el-table-column>
             <el-table-column
-                label="文件名"
-                prop="filename"
+                label="IP"
+                prop="ip"
                 width="180">
             </el-table-column>
             <el-table-column
-                label="头文件id"
-                prop="headid"
-                width="80">
+                label="创建时间"
+                prop="createtime"
+            >
             </el-table-column>
             <el-table-column
-                label="大小(Bytes)"
-                prop="size"
+                label="调试状态"
+                prop="debugstate"
                 width="180">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ toThousand(scope.row.size) }}</span>
+                    <DebugState :debug-state="scope.row.debugstate"/>
                 </template>
             </el-table-column>
             <el-table-column
-                label="上传时间"
-                prop="uploadtime"
+                label="调试参数信息"
             >
-            </el-table-column>
-            <el-table-column label="Trace文件" width="200">
                 <template slot-scope="scope">
-                    <el-tag type="success" size="small" v-if="scope.row.traced===true">
-                        已上传
-                    </el-tag>
-                    <el-tag size="small" v-if="scope.row.traced===false">
-                        未上传
-                    </el-tag>
-                    <el-button v-if="scope.row.traced===false" type="primary" size="mini" style="margin-left: 10px"
-                               @click="uploadTrace(scope.row.uid)">
-                        上传
-                    </el-button>
-                    <el-popconfirm
-                        confirm-button-text='好的'
-                        cancel-button-text='不用了'
-                        icon="el-icon-info"
-                        icon-color="red"
-                        title="确定删除这个Trace吗？"
-                        @confirm="deleteTrace(scope.$index, scope.row)"
-                    >
-                        <el-button
-                            v-if="scope.row.traced===true"
-                            style="margin-left: 10px"
-                            slot="reference"
-                            size="mini"
-                            type="danger"
-                            >删除
-                        </el-button>
-                    </el-popconfirm>
+                    <div style="display: flex;flex-direction: column;justify-content: center;">
+                        <div><span style="display:inline-block;width: 50%;text-align: right">当前执行地址:</span><span>0x{{ dec2Hex(scope.row.currentaddress) }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">断点地址:</span><span>0x{{ dec2Hex(scope.row.breakpointaddress) }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">canExecute:</span><span>{{ scope.row.canexecute }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">canStart:</span><span>{{ scope.row.canstart }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">debug:</span><span>{{ scope.row.debug }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">isend:</span><span>{{ scope.row.isend }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">previousTrace:</span><span>{{ scope.row.previousTrace }}</span></div>
+                    </div>
 
 
                 </template>
@@ -93,7 +73,7 @@
                         icon="el-icon-info"
                         icon-color="red"
                         @confirm="handleDelete(scope.$index, scope.row)"
-                        title="确定删除这个日志吗？"
+                        title="确定删除吗(相关Trace信息也会被删除)？"
                     >
                         <el-button
                             style="margin-left: 10px"
@@ -115,31 +95,18 @@
             layout="prev, pager, next, jumper"
             :total="total">
         </el-pagination>
-        <el-dialog
-            title="Trace文件上传"
-            :visible.sync="dialogVisible"
-            width="600px"
-            :before-close="handleClose">
-            <MUpload
-                :address="uploadAddress()"
-                :tip-text="'Trace'"
-                :before-upload-callback="beforeUploadcallback"
-                :fail-callback="failcallback"
-                :success-callback="successcallBack"
-            />
-
-        </el-dialog>
 
     </el-main>
 </template>
 
 <script>
 import {basic_url} from "@/request/request";
-import MUpload from "@/components/MUpload";
+import DebugState from "@/views/Debug/OnlineDebugComponent/DebugState";
+import {dec2Hex, hex2Dec} from "@/util/HexadecimalConversion";
 
 export default {
     name: "TraceManage",
-    components: {MUpload},
+    components: {DebugState},
     data() {
         return {
             tableData: [],
@@ -148,16 +115,13 @@ export default {
             pageSize: 10,
             total: 0,
             loading: true,
-            dialogVisible: false,
-            uploadUid: -1,
-            uploading: false,
-            traceid: -1,
         }
     },
     methods: {
+        dec2Hex,
+        hex2Dec,
         deleteTrace(index, row) {
             this.loading = true
-
             this.$axios.get(basic_url + '/trace/delete',
                 {
                     params:
@@ -172,35 +136,18 @@ export default {
                 this.getData()
             })
         },
-        successcallBack(response) {
-            this.uploading = false
-            this.dialogVisible = false
-            this.getData()
-        },
-        failcallback() {
-            this.uploading = false
-        },
-        beforeUploadcallback() {
-
-            this.uploading = true
-        },
-
         toThousand(num = 0) {
             return num.toString().replace(/\d+/, function (n) {
                 return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
             })
         },
         handleEdit(index, row) {
-            this.$router.push('/debug/' + row.uid)
+            this.$router.push('/debug/online/' + row.uid)
         },
         handleDelete(index, row) {
             console.log(index, row);
         },
-        uploadTrace(uid) {
-            this.dialogVisible = true;
-            this.uploadUid = uid
-            console.log(uid)
-        },
+
         handleSizeChange(val) {
             // console.log(`每页 ${val} 条`);
         },
@@ -211,11 +158,10 @@ export default {
         },
         getData() {
             this.loading = true
-            this.$axios.get(basic_url + '/history',
+            this.$axios.get(basic_url + '/onlineDebug/all',
                 {
                     params:
                         {
-                            username: localStorage.getItem('token'),
                             currentPage: this.currentPage,
                             limit: this.pageSize
                         }
@@ -227,27 +173,12 @@ export default {
                 this.pages = e.data.pages
             })
         },
-        uploadAddress: function () {
-            return basic_url + '/uploadTrace?ltid=' + this.uploadUid
-        },
-        handleClose(done) {
-            if (this.uploading) {
-                this.$message.error("正在上传中！")
-            } else {
-                done()
-            }
-        },
 
     },
     mounted() {
         this.getData()
 
     },
-    computed: {
-        loginUsername: function () {
-            return localStorage.getItem('token')
-        },
-    }
 }
 </script>
 

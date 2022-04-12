@@ -143,7 +143,7 @@ import PaintToolBox from "@/views/Debug/ToolBox/PaintToolBox";
 export default {
     name: "OnlineDebugBody",
     components: {PaintToolBox, SearchToolBox, TBBlockBody, TBDrawer, MemoryFloat, Trace, ToolBoxContainer},
-    props: ['ltid'],
+    props: ['ltid','debugTraces'],
     data() {
         return {
             fixblocks: [],
@@ -556,6 +556,7 @@ export default {
             })
         },
         newTraceArrive() {
+            //从后端的数据库中更新trace
             console.log("new Trace arrive")
         },
 

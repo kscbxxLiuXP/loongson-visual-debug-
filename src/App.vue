@@ -48,4 +48,44 @@ export default {
   height: 100%;
 
 }
+::-webkit-scrollbar {
+    width: 6px
+}
+
+::-webkit-scrollbar-corner {
+    background: unset
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsla(0, 0%, 53%, .4);
+    border-radius: 6px
+}
+
+::-webkit-scrollbar-track {
+    background: hsla(0, 0%, 53%, .1);
+    background-color: #fff
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px
+}
+
+::-webkit-scrollbar-track-piece {
+    background-color: rgba(0, 0, 0, .2);
+    -webkit-border-radius: 6px
+}
+
+::-webkit-scrollbar-thumb:vertical {
+    height: 5px;
+    background-color: hsla(0, 0%, 49%, .7);
+    -webkit-border-radius: 6px
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+    width: 5px;
+    background-color: hsla(0, 0%, 49%, .7);
+    -webkit-border-radius: 6px
+}
+
 </style>

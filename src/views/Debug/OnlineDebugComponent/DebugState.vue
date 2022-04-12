@@ -1,5 +1,5 @@
 <template>
-    <div style="font-size: 14px;margin-left: 20px;display: flex;align-items: center;line-height: normal">
+    <div style="font-size: 14px;margin-left: 20px;display: flex;align-items: center;">
         {{ title }}
         <div class="debug-state-1" v-if="debugState===1">准备就绪</div>
         <div class="debug-state-2" v-if="debugState===2">执行中</div>
@@ -34,6 +34,7 @@ export default {
     padding: 2px 5px;
     color: white;
     border-radius: 5px;
+
 }
 
 .debug-state-2 {
@@ -41,6 +42,7 @@ export default {
     padding: 2px 5px;
     color: white;
     border-radius: 5px;
+
 }
 
 .debug-state-3 {
@@ -48,6 +50,8 @@ export default {
     padding: 2px 5px;
     color: white;
     border-radius: 5px;
+
+
 }
 
 .debug-state-4 {
@@ -55,6 +59,8 @@ export default {
     padding: 2px 5px;
     color: white;
     border-radius: 5px;
+
+
 }
 
 .debug-state-5 {
@@ -62,6 +68,8 @@ export default {
     padding: 2px 5px;
     color: white;
     border-radius: 5px;
+
+
 }
 
 .debug-state-6 {
@@ -69,5 +77,7 @@ export default {
     padding: 2px 5px;
     color: white;
     border-radius: 5px;
+
+
 }
 </style>

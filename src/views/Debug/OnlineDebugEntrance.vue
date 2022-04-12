@@ -4,7 +4,7 @@
             在线调试列表
         </h2>
         <div style="color: #9195a3;font-size: 14px;display: flex;align-items: center">
-            从下列表中选择一个进入调试
+            从下列表中选择一个进入调试(<span style="color: #ff7b9e">仅展示3天内的记录</span>)
             <el-tooltip content="刷新" placement="top-end">
                 <i class="fa fa-refresh circle-button refresh-button fa-fw" @click="getOnlineList"/>
 
@@ -24,32 +24,37 @@
             </transition>
 
             <div class="boxLoading" v-show="loading"/>
+            <div style="text-align: center;height: 100px;line-height: 100px" v-if="onlineList.length===0">
+                没有可调试的进程
+            </div>
             <div>
                 <div :key="index" class="online-debug-list-item" v-for="(item,index) in onlineList">
                     <div class="lf">
                         <div class="title">
                             <h4>
-                                Debug-{{ item.id }}
+                                Debug-{{ item.uid }}
                             </h4>
-                            <DebugState :debug-state="item.debugState" title="状态："/>
+                            <DebugState :debug-state="item.debugstate" title="状态："/>
                         </div>
                         <div class="info">
                             <div>
                                 IP: {{ item.ip }}
                             </div>
                             <div style="margin-left: 10px">
-                                创建时间: {{ item.createTime }}
+                                创建时间: {{ transDate(item.createtime) }}
                             </div>
                         </div>
                     </div>
                     <div class="rf">
                         <!-- 调试状态都可以进入，但是进入之后根据state设置按钮状态-->
-                        <i class="fa fa-play circle-button run-button fa-fw" @click="runClick(item.id)"/>
-                        <i v-if="item.debugState===2||item.debugState===3"
+                        <i class="fa fa-play circle-button run-button fa-fw" @click="runClick(item.uid)"/>
+                        <i v-if="item.debugstate===2||item.debugstate===3"
                            class="fa fa-stop circle-button stop-button fa-fw"/>
                     </div>
                 </div>
             </div>
+
+
         </div>
         <div style="color: #9195a3;font-size: 14px;">上一次刷新：{{ lastRefresh }}</div>
         <el-dialog title="确认进入调试" :visible.sync="outerVisible" :before-close="handleClose">
@@ -139,6 +144,7 @@
 import {basic_url} from "@/request/request";
 import moment from "moment";
 import DebugState from "@/views/Debug/OnlineDebugComponent/DebugState";
+import {transDate} from "@/util/util";
 
 export default {
     name: "OnlineDebugEntrance",
@@ -159,6 +165,7 @@ export default {
         }
     },
     methods: {
+        transDate,
         manageTrace() {
             this.$router.push('/trace')
         },
@@ -310,7 +317,6 @@ export default {
 }
 
 .online-debug-list-wrapper {
-    min-height: 100px;
     min-width: 410px;
     margin-top: 10px;
     border: black 2px solid;

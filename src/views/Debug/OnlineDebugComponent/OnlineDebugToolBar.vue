@@ -2,18 +2,39 @@
     <div
         style="display: flex;align-items: center;width: 100%;justify-content: center;border-bottom: #d1d1d1 1px solid;font-size: 14px">
         <div>
-            IP地址:{{ debugVar.ip }}
+            <MyPopover title="显示/隐藏跟踪信息" position="top">
+                <DebugButton color="gray" :selected="showTrace" icon="fa-history" id="showTrace_btn"
+                             :click="()=>{showTrace=!showTrace}"/>
+            </MyPopover>
+            <div style="position: relative">
+                <transition
+                    name="fade-in-linear">
+                    <DebugTraceBoard :debug-traces="debugTraces" v-show="showTrace"/>
+                </transition>
+
+            </div>
+
         </div>
-        <div style="margin-left: 10px">
-            当前地址:0x{{ dec2Hex(debugVar.currentAddress) }}
+
+
+        <div class="debug-divider"/>
+        <div style="line-height: 14px">
+            IP地址:{{ onlineDebug.ip }}
         </div>
-        <div style="margin-left: 10px" v-if="debugVar.breakPointAddress===-1">
+
+        <div style="margin-left: 10px;line-height: 14px" v-if="onlineDebug.currentaddress===-1">
+            当前地址: <span style="color: palevioletred">NULL</span>
+        </div>
+        <div style="margin-left: 10px;line-height: 14px" v-if="onlineDebug.currentaddress!==-1">
+            当前地址:<span style="color: #df8a2e;margin-left: 5px">0x{{ dec2Hex(onlineDebug.currentaddress) }}</span>
+        </div>
+        <div style="margin-left: 10px;line-height: 14px" v-if="onlineDebug.breakpointaddress===-1">
             当前断点: <span style="color: palevioletred">NULL</span>
         </div>
-        <div style="margin-left: 10px" v-if="debugVar.breakPointAddress!==-1">
-            当前断点:0x{{ dec2Hex(debugVar.breakPointAddress) }}
+        <div style="margin-left: 10px;line-height: 14px" v-if="onlineDebug.breakpointaddress!==-1">
+            当前断点:0x{{ dec2Hex(onlineDebug.breakpointaddress) }}
         </div>
-        <DebugState :debug-state="debugVar.debugState"/>
+        <DebugState style="line-height: 14px;" :debug-state="onlineDebug.debugstate"/>
         <div class="debug-divider"/>
         <el-tag size="mini" :type="websock===null?'error':'success'">{{
                 websock === null ? '未连接' : '已连接'
@@ -66,18 +87,20 @@ import {basic_url, basic_websocket} from "@/request/request";
 
 import MyPopover from "@/components/Popover/MyPopover";
 import {dec2Hex, hex2Dec} from "@/util/HexadecimalConversion";
+import DebugTraceBoard from "@/views/Debug/OnlineDebugComponent/DebugTraceBoard";
 
 export default {
 
     name: "OnlineDebugToolBar",
-    components: {DebugState, DebugButton, MyPopover},
-    props: ['showConsole', 'id', 'logg'],
+    components: {DebugTraceBoard, DebugState, DebugButton, MyPopover},
+    props: ['showConsole', 'id', 'logg', 'debugTraces'],
     data() {
         return {
             breakPointAddress: '',
             websock: null,
-            debugVar: {},
+            onlineDebug: {},
             breakPointSet: false,
+            showTrace: true,
 
         }
     },
@@ -92,7 +115,7 @@ export default {
             var runToNextBreakPointDisabled = true
             var runToEndDisabled = true
             if (this.websock !== null) {
-                switch (this.debugVar.debugState) {
+                switch (this.onlineDebug.debugstate) {
                     case 1:
                         //准备就绪
                         if (this.breakPointSet) {
@@ -164,7 +187,7 @@ export default {
         // 数据接收
         websocketonmessage(e) {
             //处理各种数据
-            console.log('数据接收' + e.data)
+
             var reply = JSON.parse(e.data)
             switch (reply.type) {
                 case -1:
@@ -209,10 +232,39 @@ export default {
                 case 8:
                     //Latx向Server发送了trace信息
                     this.logg("收到 LATX 发送的trace信息！" + reply.trace)
+                    this.$notify({
+                        title: '收到了一条Trace',
+                        position: 'top-left',
+                        offset: 100,
+                        dangerouslyUseHTMLString: true,
+                        message: `<div>
+                                    <div>
+                                    Trace地址:<span>${dec2Hex(reply.trace)}</span>
+                                    </div>
+                                    <div>
+                                    寄存器信息:<span>${reply.registers}</span>
+                                    </div>
+                                </div>`
+                    });
                     this.$emit('newTraceArrive')
                     break;
+                case 9:
+                    //Latx向Server发送了Link信息
+                    this.logg("LATX Link TBS")
+                    this.$notify({
+                        title: '收到了一条Linking TB',
+                        position: 'top-left',
+                        offset: 100,
+                        dangerouslyUseHTMLString: true,
+                        message: `<div>
+                                        <div>
+                                        TB块链接 从:<span>${dec2Hex(reply.linkFrom)}</span> 到 <span>${dec2Hex(reply.linkTo)}</span>
+                                        </div>
+                                    </div>`
+                    });
+                    break;
             }
-            this.debugVar = reply.data
+            this.onlineDebug = reply.data
 
         },
         // 数据发送
@@ -231,7 +283,7 @@ export default {
         },
         setBreakPointAddress() {
             let addressDec = hex2Dec(this.breakPointAddress)
-            console.log('setbreakpoint'+addressDec)
+            console.log('setbreakpoint' + addressDec)
             let data = {
                 type: 0,
                 id: parseInt(this.id),
@@ -288,7 +340,7 @@ export default {
                 id: this.id
             }
         }).then(e => {
-            this.debugVar = e.data
+            this.onlineDebug = e.data
         })
     },
     computed: {

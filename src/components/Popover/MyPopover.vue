@@ -17,11 +17,20 @@
 
 export default {
     name: "MyPopover",
-    props: ['title'],
+    props: {
+        title: {
+            type: String,
+            default: ''
+        },
+        position: {
+            type: String,
+            default: "bottom"
+        }
+    },
     data() {
         return {
             showPopper: false,
-            position: {
+            position1: {
                 top: 0,
                 left: 0
             },
@@ -49,9 +58,15 @@ export default {
             if (val) {
                 const popover = this.$refs.popover;
                 const trigger = this.$refs.trigger.children[0];
-                // 通过placement计算出位子
-                this.position.top = trigger.offsetTop + trigger.offsetHeight;
-                popover.style.top = this.position.top + 'px';
+                if (this.position==='bottom'){
+                    // 通过placement计算出位子
+                    this.position1.top = trigger.offsetTop + trigger.offsetHeight;
+                    popover.style.top = this.position1.top +5+ 'px';
+                }else if(this.position==='top'){
+                    this.position1.top = trigger.offsetTop - trigger.clientHeight-23;
+                    popover.style.top = this.position1.top + 'px';
+                }
+
             }
         }
     },
@@ -81,7 +96,7 @@ export default {
     -moz-box-shadow: 6px 5px 2px -9px white, 5px 6px 2px -9px white;
     -webkit-box-shadow: 6px 5px 2px -9px white, 5px 6px 2px -9px white;
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
-    margin-top: 5px;
+
 
 }
 </style>
