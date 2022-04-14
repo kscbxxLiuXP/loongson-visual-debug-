@@ -1,8 +1,21 @@
 <template>
     <div class="tool-box-container">
+        <div style="position: relative">
+            <transition
+                name="fade-in-linear">
+                <DebugTraceBoard
+                    :debug-traces="traceData"
+                    v-show="showTraceBoard"
+                    @close="showTraceBoard=false"
+                    @setAsStart="setAsStart"
+                    @jumpByAddress="jumpByAddress"
+                />
+            </transition>
+        </div>
         <!-- 搜索框-->
         <SearchToolBox
             ref="searchToolBox"
+            id="searchToolBox"
             :ltid="ltid"
             :clear-select="clearSelect"
             :selectSearch="selectSearch"
@@ -14,10 +27,14 @@
         <PaintToolBox
             v-if="traced"
             ref="paintToolBox"
+            id="paintToolBox"
             :trace-data="traceData"
             :set-trace-data-processed="setTraceDataProcessed"
             :draw-path="drawPath"
+            @showTrace="showTraceBoard=true"
         />
+
+
     </div>
 </template>
 
@@ -26,9 +43,11 @@
 
 import SearchToolBox from "@/views/Debug/ToolBox/SearchToolBox";
 import PaintToolBox from "@/views/Debug/ToolBox/PaintToolBox";
+import DebugTraceBoard from "@/views/Debug/OnlineDebugComponent/DebugTraceBoard";
+
 export default {
     name: "ToolBoxContainer",
-    components: {PaintToolBox, SearchToolBox},
+    components: {DebugTraceBoard, PaintToolBox, SearchToolBox},
     props: [
         //data
         'ltid',
@@ -57,7 +76,7 @@ export default {
     ],
     data() {
         return {
-
+            showTraceBoard: false,
         }
     },
     methods: {
@@ -66,11 +85,26 @@ export default {
          * 由父组件传来address，设置searchToolBox中的address
          * @param address
          */
-        setAddress(address){
-            this.$refs.searchToolBox.expandSearch=true
+        setAddress(address) {
+            this.$refs.searchToolBox.expandSearch = true
             this.$refs.searchToolBox.searchType = '1'
             this.$refs.searchToolBox.searchText = address
+        },
+        setAsStart(address){
+            this.$refs.paintToolBox.startAddress = address
+        },
+        jumpByAddress(address){
+            this.$emit("jumpByAddress",address)
         }
+
+    },
+    mounted() {
+        //设置debugBoard位置
+        let board = document.getElementById("debug-trace-board")
+        let searchbox = document.getElementById("searchToolBox")
+
+        board.style.left = searchbox.clientWidth+10+'px'
+        board.style.top = '0px'
 
     }
 

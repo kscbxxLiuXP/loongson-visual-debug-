@@ -49,7 +49,7 @@ export default {
 
 }
 ::-webkit-scrollbar {
-    width: 6px
+    width: 8px
 }
 
 ::-webkit-scrollbar-corner {
@@ -67,7 +67,7 @@ export default {
 }
 
 ::-webkit-scrollbar {
-    width: 5px;
+    width: 7px;
     height: 5px
 }
 
@@ -83,7 +83,7 @@ export default {
 }
 
 ::-webkit-scrollbar-thumb:horizontal {
-    width: 5px;
+    width: 7px;
     background-color: hsla(0, 0%, 49%, .7);
     -webkit-border-radius: 6px
 }

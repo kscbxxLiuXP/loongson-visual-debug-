@@ -9,7 +9,13 @@
             <div style="position: relative">
                 <transition
                     name="fade-in-linear">
-                    <DebugTraceBoard :debug-traces="debugTraces" v-show="showTrace"/>
+                    <DebugTraceBoard
+                        :debug-traces="debugTraces"
+                        v-show="showTrace"
+                        @close="showTrace=false"
+                        @setAsStart="setAsStart"
+                        @jumpByAddress="jumpByAddress"
+                    />
                 </transition>
 
             </div>
@@ -107,6 +113,12 @@ export default {
     methods: {
         dec2Hex,
         hex2Dec,
+        setAsStart(address){
+            this.$emit("setAsStart",address)
+        },
+        jumpByAddress(address){
+            this.$emit("jumpByAddress",address)
+        },
         getDisabledState() {
             var runDisabled = true
             var stopDisabled = true
@@ -335,6 +347,11 @@ export default {
         }
     },
     mounted() {
+        let button = document.getElementById("showTrace_btn")
+        let board = document.getElementById("debug-trace-board")
+        let offsetleft = (button.offsetLeft + button.clientWidth / 2) - (350 / 2)
+        board.style.left = (offsetleft - button.offsetLeft) + 'px'
+
         this.$axios.get(basic_url + "/onlineDebug/get", {
             params: {
                 id: this.id

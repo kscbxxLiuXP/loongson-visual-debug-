@@ -53,7 +53,7 @@ export default {
                         if (cfg.address) {
                             group.addShape('text', {
                                 attrs: {
-                                    text: '[' + cfg.tbindex + '] ' + cfg.address,
+                                    text: '[' + cfg.id + '] ' + cfg.address,
                                     x: 0,
                                     y: 0,
                                     fill: '#00287E',
@@ -70,6 +70,8 @@ export default {
                 },
                 'single-node',
             );
+
+
 
             const container = document.getElementById('container');
             const width = container.scrollWidth;
@@ -93,8 +95,7 @@ export default {
                         let target = e.item._cfg.targetNode._cfg.model
                         outDiv.innerHTML = `
                         <div>
-                            <div style='font-size: 14px;'>[${source.id}] <span style="font-size: 18px">${source.address}</span> → [${target.id}] <span style="font-size: 18px">${target.address}</span></div>
-
+                            <div style='font-size: 18px;'> <span>${model.styleType==='link'?'': '间接跳转'}</span>  ${source.address} <span style="font-size: 40px;line-height: 16px">→ </span> ${target.address}</div>
                         </div>`;
                     } else {
                         outDiv.innerHTML = `
@@ -103,7 +104,7 @@ export default {
                             <div style='margin-top: 5px'>id: TB-${model.id}</div>
 
                             <div style='margin-top: 5px;display: flex;align-items: center' >tbtype:
-                                <div style='background-color: ##fff0f6;padding: 1px 2px;margin-left: 5px;border: #ffadd2 1px solid;color: #c41d93'>${model.tbtype===''?'无':model.tbtype}</div>
+                                <div style='background-color: ##fff0f6;padding: 1px 2px;margin-left: 5px;border: #ffadd2 1px solid;color: #c41d93'>${model.tbtype === '' ? '无' : model.tbtype}</div>
                             </div>
                         </div>`;
                     }
@@ -134,12 +135,32 @@ export default {
                 container: 'container',
                 width,
                 height,
+                groupByTypes: false,
                 plugins: [minimap, contextMenu, tooltip],
                 layout: {
                     type: 'dagre',
                     nodesep: 50,
                     ranksep: 70,
                     controlPoints: true,
+                },
+                defaultCombo: {
+                    type: 'rect',
+                    /* The minimum size of the combo. combo 最小大小 */
+                    size: [50, 50],
+                    /* style for the keyShape */
+                    // style: {
+                    //   lineWidth: 1,
+                    // },
+                    labelCfg: {
+                        /* label's offset to the keyShape */
+                        // refY: 10,
+                        /* label's position, options: center, top, bottom, left, right */
+                        position: 'top',
+                        /* label's style */
+                        style: {
+                          fontSize: 18,
+                        },
+                    },
                 },
                 defaultNode: {
                     // shape: 'rect',
@@ -150,31 +171,73 @@ export default {
                     style: {
                         radius: 10,
                         offset: 30,
-                        endArrow: true,
                         lineWidth: 3,
                         stroke: '#C2C8D5',
                     },
-
-
                 },
                 edgeStateStyles: {
+                    link: {
+                        radius: 10,
+                        offset: 30,
+                        stroke: '#c3c3c3',
+                        lineWidth: 1,
+                        shadowBlur: 0,
+                        endArrow:true
+                    },
                     // edge style of active state
-                    active: {
+                    linkActive: {
                         lineWidth: 4,
                         opacity: 0.5,
                         stroke: '#0900ff',
-
+                        endArrow:true,
                     },
                     // edge style of selected state
-                    selected: {
+
+                    linkHover: {
+                        endArrow:true,
                         stroke: '#f00',
                         lineWidth: 4,
                         shadowBlur: 0
                     },
-                    highlight: {
+                    linkHighlight: {
+                        endArrow:true,
                         stroke: '#f00',
                         lineWidth: 4,
                         shadowBlur: 0
+                    },
+                    dot: {
+                        lineDash:  [5, 5] ,
+                        stroke: '#bcb7b7',
+                        lineWidth: 4,
+                        shadowBlur: 0,
+                        endArrow: false
+                    },
+                    dotHover: {
+                        lineDash:  [5, 5] ,
+                        endArrow: false,
+
+                        stroke: '#f00',
+                        lineWidth: 4,
+                        shadowBlur: 0,
+                    },
+                    dotActive: {
+                        lineDash:  [5, 5] ,
+
+
+                        endArrow: false,
+
+                        stroke: '#f00',
+                        lineWidth: 4,
+                        shadowBlur: 0,
+                    },
+                    dotHighlight: {
+                        lineDash:  [10, 20] ,
+
+                        endArrow: false,
+
+                        stroke: '#f00',
+                        lineWidth: 4,
+                        shadowBlur: 0,
                     },
                 },
                 nodeStateStyles: {
@@ -194,6 +257,8 @@ export default {
                         'drag-canvas',
                         'zoom-canvas',
                         'click-select',
+                        'collapse-expand-combo',
+                        'drag-combo',
 
                     ],
                 },
@@ -203,36 +268,69 @@ export default {
                 graph.getNodes().forEach((node) => {
                     graph.clearItemStates(node);
                 });
+                initEdge()
+            };
+
+            const initEdge = () => {
                 graph.getEdges().forEach((edge) => {
                     graph.clearItemStates(edge);
+                    if (edge._cfg.model.styleType !== 'link') {
+                        graph.setItemState(edge, 'dot', true)
+                    } else {
+                        graph.setItemState(edge, 'link', true);
+                    }
+
                 });
-            };
+            }
+
 
             graph.on('canvas:click', (e) => {
                 clearStates();
             });
 
-
             graph.on('edge:mouseenter', (evt) => {
                 const {item} = evt;
-                graph.setItemState(item, 'active', true);
+                if (item._cfg.model.styleType !== 'link') {
+                    graph.setItemState(item, 'dotHover', true)
+                } else {
+                    graph.setItemState(item, 'linkHover', true);
+                }
+
             });
 
             graph.on('edge:mouseleave', (evt) => {
                 const {item} = evt;
-                graph.setItemState(item, 'active', false);
+                if (item._cfg.model.styleType !== 'link') {
+                    graph.setItemState(item, 'dotHover', false)
+                } else {
+                    graph.setItemState(item, 'linkHover', false);
+                }
             });
             graph.on('edge:click', (evt) => {
-                graph.getEdges().forEach((edge) => {
-                    graph.clearItemStates(edge);
-                });
+                initEdge()
                 const {item} = evt;
-                graph.setItemState(item, 'selected', true);
+                if (item._cfg.model.styleType !== 'link') {
+                    graph.setItemState(item, 'dotActive', true)
+                } else {
+                    graph.setItemState(item, 'linkActive', true);
+                }
             });
             graph.on('canvas:click', (evt) => {
-                graph.getEdges().forEach((edge) => {
-                    graph.clearItemStates(edge);
-                });
+               initEdge()
+            });
+
+            graph.on('combo:mouseenter', (evt) => {
+                const { item } = evt;
+                graph.setItemState(item, 'active', true);
+            });
+
+            graph.on('combo:mouseleave', (evt) => {
+                const { item } = evt;
+                graph.setItemState(item, 'active', false);
+            });
+            graph.on('combo:click', (evt) => {
+                const { item } = evt;
+                graph.setItemState(item, 'selected', true);
             });
             if (typeof window !== 'undefined')
                 window.onresize = () => {
@@ -248,11 +346,20 @@ export default {
                 graph.getNodes().forEach((node) => {
                     graph.clearItemStates(node);
                 });
-                graph.getEdges().forEach((edge) => {
-                    graph.clearItemStates(edge);
-                });
+                initEdge()
             };
 
+            const initEdge = () => {
+                graph.getEdges().forEach((edge) => {
+                    graph.clearItemStates(edge);
+                    if (edge._cfg.model.styleType !== 'link') {
+                        graph.setItemState(edge, 'dot', true)
+                    } else {
+                        graph.setItemState(edge, 'link', true);
+                    }
+
+                });
+            }
             const selectedNodes = graph.findAllByState('node', 'selected');
             if (selectedNodes.length !== 2) {
                 alert('Please select TWO nodes!\n\r请选择有且两个节点！');
@@ -281,10 +388,20 @@ export default {
                 const sourceInPathIdx = path.indexOf(source);
                 const targetInPathIdx = path.indexOf(target);
                 if (sourceInPathIdx === -1 || targetInPathIdx === -1) return;
+                graph.clearItemStates(edge);
                 if (Math.abs(sourceInPathIdx - targetInPathIdx) === 1) {
-                    graph.setItemState(edge, 'highlight', true);
+
+                    if (edge._cfg.model.styleType !== 'link') {
+                        graph.setItemState(edge, 'dotHighlight', true)
+                    } else {
+                        graph.setItemState(edge, 'linkHighlight', true);
+                    }
                 } else {
-                    graph.setItemState(edge, 'inactive', true);
+                    if (edge._cfg.model.styleType !== 'link') {
+                        graph.setItemState(edge, 'dot', true)
+                    } else {
+                        graph.setItemState(edge, 'link', true);
+                    }
                 }
             });
             graph.getNodes().forEach((node) => {
@@ -309,9 +426,11 @@ export default {
 
             let nodes = newVal.nodes
             let edges = newVal.edges
+            let combos = newVal.combos
             let d = {
                 'nodes': nodes,
-                'edges': edges
+                'edges': edges,
+                'combos':combos
             }
             this.data = d
             if (this.graph === null) {
@@ -320,7 +439,15 @@ export default {
             this.graph.clear()
             this.graph.data(d);
             this.graph.render();
-            // this.graph.fitCenter()
+            this.graph.getEdges().forEach((edge) => {
+                this.graph.clearItemStates(edge);
+                if (edge._cfg.model.styleType !== 'link') {
+                    this.graph.setItemState(edge, 'dot', true)
+                } else {
+                    this.graph.setItemState(edge, 'link', true);
+                }
+
+            });
         },
     },
 }

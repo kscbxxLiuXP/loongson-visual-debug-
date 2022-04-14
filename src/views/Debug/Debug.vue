@@ -9,10 +9,12 @@
                 :set-loading="setLoading"
                 :set-keyword="setKeyword"
                 :jump-t-b-and-select="jumpTBAndSelect"
-                :trace-data="traceData"
+                :trace-data="traceData.tracelist"
                 :traced="ltlog.traced"
                 :set-trace-data-processed="setTraceDataProcessed"
                 :draw-path="drawPath"
+                @jumpByAddress="jumpByAddress"
+
             />
             <div v-if="!ltlog.traced" class="trace-upload">
                 <MUpload
@@ -23,6 +25,8 @@
                 />
             </div>
             <Trace ref="trace" :trace-data-processed="traceDataProcessed" v-if="ltlog.traced" :jump-t-b="jumpTB"/>
+
+
             <div class="touch-div" ref="moveDom" @click="clickExpand">
                 <i v-if="expand" class="el-icon-arrow-left"/>
                 <i v-if="!expand" class="el-icon-arrow-right"/>
@@ -120,6 +124,7 @@
             @addressClick="addressClick"
 
         />
+
     </el-container>
 </template>
 
@@ -133,10 +138,11 @@ import MemoryFloat from "@/views/Debug/OfflineDebugComponent/MemoryFloat";
 import TBDrawer from "@/views/Debug/OfflineDebugComponent/TBDrawer";
 import './tbblock.css'
 import TBBlockBody from "@/views/Debug/OfflineDebugComponent/TBBlockBody";
+import DebugTraceBoard from "@/views/Debug/OnlineDebugComponent/DebugTraceBoard";
 
 export default {
     name: "Debug",
-    components: {TBBlockBody, TBDrawer, MemoryFloat, Trace, MUpload, ToolBoxContainer},
+    components: {DebugTraceBoard, TBBlockBody, TBDrawer, MemoryFloat, Trace, MUpload, ToolBoxContainer},
     props: ['id'],
     data() {
         return {
@@ -156,6 +162,7 @@ export default {
                 ltid: '',
                 uid: '',
             },
+            addressIndexMap:{},
             ltlog: {
                 filename: '',
                 headid: '',
@@ -170,7 +177,7 @@ export default {
             },
             tbBlocks: [],
             keywords: '',
-            expand: false,
+            expand: true,
             showDrawer: false,
             //选中IR1之后需要记录的信息
             currentTB: -1,
@@ -178,7 +185,7 @@ export default {
             selectIR2End: -1,
             letfDom: null,
             clientStartX: 0,
-            width: '50%',
+            width: '100%',
 
             //原始的所有trace数据
             traceData: [],
@@ -195,10 +202,15 @@ export default {
         }
     },
     methods: {
+
         //从Trace文件中获取一个TB块的寄存器信息
         getRegisterInfoFromTrace(address, callback) {
 
             let tracelist = this.traceData.tracelist
+            if (tracelist == null) {
+                callback(null)
+                return
+            }
             let registers = null
             for (let i = 0; i < tracelist.length; i++) {
                 let trace = tracelist[i]
@@ -389,6 +401,16 @@ export default {
                 });
             })
         },
+        jumpByAddress(address) {
+            //根据address获取tbindex
+            let id = this.addressIndexMap[address]
+            if (id === undefined) {
+                this.$message.error("跳转错误！没有找到这个TB块")
+            } else {
+                this.jumpTB(id)
+            }
+
+        },
         jumpTB(tbindex) {
             /*
             获取TB块处于第几页
@@ -553,6 +575,7 @@ export default {
 
     mounted() {
 
+
         if (this.$route.query.page === undefined)
             this.currentPage = 1
         else
@@ -563,6 +586,7 @@ export default {
             this.simpleTbBlocks = e.data.simpleTbBlocks
             this.head = e.data.head
             this.ltlog = e.data.ltlog
+            this.addressIndexMap = e.data.addressIndexMap
             let a = 585 / e.data.simpleTbBlocks.length
             this.tbMemHeight = a + 'px'
 

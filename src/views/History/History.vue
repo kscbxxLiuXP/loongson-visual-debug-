@@ -194,7 +194,20 @@ export default {
             this.$router.push('/debug/' + row.uid)
         },
         handleDelete(index, row) {
-            console.log(index, row);
+            this.loading = true
+
+            this.$axios.get(basic_url + '/deleteltlog',
+                {
+                    params:
+                        {
+                            ltid: row.uid,
+                        }
+                }
+            ).then(e => {
+                this.$message.success("删除成功！")
+                this.loading = false
+                this.getData()
+            })
         },
         uploadTrace(uid) {
             this.dialogVisible = true;

@@ -16,9 +16,10 @@
                 <!-- 跟踪画图工具栏-->
                 <PaintToolBox
                     ref="paintToolBox"
-                    :trace-data="traceData"
+                    :trace-data="debugTraces"
                     :set-trace-data-processed="setTraceDataProcessed"
                     :draw-path="drawPath"
+                    @showTrace="showTrace"
                 />
             </div>
             <Trace ref="trace" :trace-data-processed="traceDataProcessed" :jump-t-b="jumpTB"/>
@@ -131,7 +132,6 @@
 <script>
 import {basic_url} from "@/request/request";
 import Mark from "mark.js";
-import ToolBoxContainer from "@/views/Debug/ToolBox/ToolBoxContainer";
 import Trace from "@/components/Trace/Trace";
 import MemoryFloat from "@/views/Debug/OfflineDebugComponent/MemoryFloat";
 import TBDrawer from "@/views/Debug/OfflineDebugComponent/TBDrawer";
@@ -142,7 +142,7 @@ import PaintToolBox from "@/views/Debug/ToolBox/PaintToolBox";
 
 export default {
     name: "OnlineDebugBody",
-    components: {PaintToolBox, SearchToolBox, TBBlockBody, TBDrawer, MemoryFloat, Trace, ToolBoxContainer},
+    components: {PaintToolBox, SearchToolBox, TBBlockBody, TBDrawer, MemoryFloat, Trace},
     props: ['ltid','debugTraces'],
     data() {
         return {
@@ -162,6 +162,7 @@ export default {
                 ltid: '',
                 uid: '',
             },
+            addressIndexMap:{},
             ltlog: {
                 filename: '',
                 headid: '',
@@ -201,14 +202,29 @@ export default {
         }
     },
     methods: {
+        jumpByAddress(address) {
+            //根据address获取tbindex
+            let id = this.addressIndexMap[address]
+            if (id === undefined) {
+                this.$message.error("跳转错误！没有找到这个TB块")
+            } else {
+                this.jumpTB(id)
+            }
+
+        },
+        showTrace(){
+            this.$emit('showTrace')
+        },
+
         //从Trace文件中获取一个TB块的寄存器信息
         getRegisterInfoFromTrace(address, callback) {
 
-            let tracelist = this.traceData.tracelist
+            let tracelist = this.debugTraces
+
             let registers = null
             for (let i = 0; i < tracelist.length; i++) {
                 let trace = tracelist[i]
-                console.log(trace.address + " " + address)
+                console.log(trace.address + " " + address,trace)
                 if (trace.address === address) {
                     registers = trace.registers
                     break
@@ -568,6 +584,7 @@ export default {
                 this.simpleTbBlocks = e.data.simpleTbBlocks
                 this.head = e.data.head
                 this.ltlog = e.data.ltlog
+                this.addressIndexMap = e.data.addressIndexMap
                 let a = 585 / e.data.simpleTbBlocks.length
                 this.tbMemHeight = a + 'px'
 

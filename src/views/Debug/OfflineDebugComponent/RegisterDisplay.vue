@@ -63,8 +63,11 @@ ul, li {
     background-color: #efad5c;
     width: 80px;
     color: white;
-    text-align: center;
     border-radius: 3px;
+    text-align: justify;
+    text-align-last: justify;
+
+
 }
 
 .register-wrapper {

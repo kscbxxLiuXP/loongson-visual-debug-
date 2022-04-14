@@ -2,16 +2,19 @@
     <el-container style="padding: 0">
         <el-header style="padding: 0;line-height: 35px;height: 35px">
             <OnlineDebugToolBar
+                ref="toolbar"
                 :id="id"
                 :show-console="showConsole"
                 :logg="logg"
                 :debug-traces="debugTraces"
                 @close="()=>{showConsole=!showConsole}"
                 @newTraceArrive="newTraceArrive"
+                @setAsStart="setAsStart"
+                @jumpByAddress="jumpByAddress"
             />
         </el-header>
         <el-main style="margin: 0;padding: 0;margin-top: 1px">
-            <OnlineDebugBody ref="onlineDebugBody" :ltid="ltid" :debug-traces="debugTraces"/>
+            <OnlineDebugBody @showTrace="showTrace" ref="onlineDebugBody" :ltid="ltid" :debug-traces="debugTraces"/>
 
         </el-main>
         <el-footer v-show="showConsole" height="100" style="padding: 0;border: #d6d6d6 1px solid">
@@ -38,11 +41,19 @@ export default {
     data() {
         return {
             showConsole: true,
-            showTrace: false,
             debugTraces: [],
         }
     },
     methods: {
+        setAsStart(address){
+            this.$refs.onlineDebugBody.$refs.paintToolBox.startAddress = address
+        },
+        jumpByAddress(address){
+            this.$refs.onlineDebugBody.jumpByAddress(address)
+        },
+        showTrace(){
+          this.$refs.toolbar.showTrace=true
+        },
         newTraceArrive() {
             this.getDebugTrace()
             this.$refs.onlineDebugBody.newTraceArrive()
@@ -56,7 +67,6 @@ export default {
                     id: this.id
                 }
             }).then(e => {
-                console.log(e.data)
                 this.debugTraces = e.data
             })
         }

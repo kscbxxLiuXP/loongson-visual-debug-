@@ -290,7 +290,6 @@ export default {
     background-color: white;
 
     border: #dbdcdd 1px solid;
-
     border-radius: 5px;
 }
 
