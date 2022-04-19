@@ -6,7 +6,7 @@
 
         <div class="boxLoading" v-show="loading"/>
         <div style="margin-bottom: 10px">
-            历史调试信息
+            日志分析列表
         </div>
         <el-table
             border
@@ -20,51 +20,27 @@
                 </template>
             </el-table-column>
             <el-table-column
-                label="uid"
-                prop="uid"
+                label="ltid"
+                prop="ltid"
                 width="50">
             </el-table-column>
             <el-table-column
-                label="文件名"
-                prop="filename"
-                width="180">
-            </el-table-column>
-            <el-table-column
-                label="头文件id"
-                prop="headid"
-                width="80">
-            </el-table-column>
-            <el-table-column
-                label="大小(Bytes)"
-                prop="size"
-                width="180">
+                label="gen code size">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ toThousand(scope.row.size) }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.genCodeSize1 }}/{{ scope.row.genCodeSize2 }}</span>
                 </template>
             </el-table-column>
-            <el-table-column
-                label="行数"
-                prop="line"
-                width="180">
+
+            <el-table-column label="Profile文件" width="200">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ toThousand(scope.row.line) }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column
-                label="上传时间"
-                prop="uploadtime"
-            >
-            </el-table-column>
-            <el-table-column label="Trace文件" width="200">
-                <template slot-scope="scope">
-                    <el-tag type="success" size="small" v-if="scope.row.traced===true">
+                    <el-tag type="success" size="small" v-if="scope.row.profiled===true">
                         已上传
                     </el-tag>
-                    <el-tag size="small" v-if="scope.row.traced===false">
+                    <el-tag size="small" v-if="scope.row.profiled===false">
                         未上传
                     </el-tag>
-                    <el-button v-if="scope.row.traced===false" type="primary" size="mini" style="margin-left: 10px"
-                               @click="uploadTrace(scope.row.uid)">
+                    <el-button v-if="scope.row.profiled===false" type="primary" size="mini" style="margin-left: 10px"
+                               @click="uploadProfile(scope.row.ltid)">
                         上传
                     </el-button>
                     <el-popconfirm
@@ -81,7 +57,7 @@
                             slot="reference"
                             size="mini"
                             type="danger"
-                            >删除
+                        >删除
                         </el-button>
                     </el-popconfirm>
 
@@ -95,23 +71,6 @@
                         size="mini"
                         @click="handleEdit(scope.$index, scope.row)">查看
                     </el-button>
-                    <el-popconfirm
-                        confirm-button-text='好的'
-                        cancel-button-text='不用了'
-                        icon="el-icon-info"
-                        icon-color="red"
-                        @confirm="handleDelete(scope.$index, scope.row)"
-                        title="确定删除这个日志吗？"
-                    >
-                        <el-button
-                            style="margin-left: 10px"
-                            slot="reference"
-                            size="mini"
-                            type="danger"
-                        >删除
-                        </el-button>
-                    </el-popconfirm>
-
                 </template>
             </el-table-column>
         </el-table>
@@ -124,18 +83,17 @@
             :total="total">
         </el-pagination>
         <el-dialog
-            title="Trace文件上传"
+            title="Profile文件上传"
             :visible.sync="dialogVisible"
             width="600px"
             :before-close="handleClose">
             <MUpload
                 :address="uploadAddress()"
-                :tip-text="'Trace'"
+                :tip-text="'Profile'"
                 :before-upload-callback="beforeUploadcallback"
                 :fail-callback="failcallback"
                 :success-callback="successcallBack"
             />
-
         </el-dialog>
 
     </el-main>
@@ -146,7 +104,7 @@ import {basic_url} from "@/request/request";
 import MUpload from "@/components/MUpload";
 
 export default {
-    name: "History",
+    name: "DataAnalysisList",
     components: {MUpload},
     data() {
         return {
@@ -165,7 +123,6 @@ export default {
     methods: {
         deleteTrace(index, row) {
             this.loading = true
-
             this.$axios.get(basic_url + '/trace/delete',
                 {
                     params:
@@ -181,9 +138,32 @@ export default {
             })
         },
         successcallBack(response) {
-            this.uploading = false
-            this.dialogVisible = false
-            this.getData()
+
+            let error = ''
+            response.forEach(e => {
+                    error = error + e + "\n"
+                }
+            )
+            if (response.length !== 0) {
+                this.$alert(<div>分析已经完成，但是发生了以下的错误：
+                        <div>下列地址没有在日志中找到映射</div>
+                        <div> ${error}</div>
+                    </div>,
+                    '错误提示',
+                    {
+                        confirmButtonText: '确定',
+                        type: 'error',
+                        callback: action => {
+                            this.uploading = false
+                            this.dialogVisible = false
+                            this.getData()
+                        }
+                    });
+            } else {
+                this.uploading = false
+                this.dialogVisible = false
+                this.getData()
+            }
         },
         failcallback() {
             this.uploading = false
@@ -199,25 +179,10 @@ export default {
             })
         },
         handleEdit(index, row) {
-            this.$router.push('/debug/' + row.uid)
+            this.$router.push('/dataAnalysis/' + row.ltid)
         },
-        handleDelete(index, row) {
-            this.loading = true
 
-            this.$axios.get(basic_url + '/deleteltlog',
-                {
-                    params:
-                        {
-                            ltid: row.uid,
-                        }
-                }
-            ).then(e => {
-                this.$message.success("删除成功！")
-                this.loading = false
-                this.getData()
-            })
-        },
-        uploadTrace(uid) {
+        uploadProfile(uid) {
             this.dialogVisible = true;
             this.uploadUid = uid
             console.log(uid)
@@ -232,11 +197,10 @@ export default {
         },
         getData() {
             this.loading = true
-            this.$axios.get(basic_url + '/history',
+            this.$axios.get(basic_url + '/ltLogAnalysis/getAll',
                 {
                     params:
                         {
-                            username: localStorage.getItem('token'),
                             currentPage: this.currentPage,
                             limit: this.pageSize
                         }
@@ -249,7 +213,7 @@ export default {
             })
         },
         uploadAddress: function () {
-            return basic_url + '/uploadTrace?ltid=' + this.uploadUid
+            return basic_url + '/uploadProfile?ltid=' + parseInt(this.uploadUid)
         },
         handleClose(done) {
             if (this.uploading) {
@@ -264,11 +228,6 @@ export default {
         this.getData()
 
     },
-    computed: {
-        loginUsername: function () {
-            return localStorage.getItem('token')
-        },
-    }
 }
 </script>
 

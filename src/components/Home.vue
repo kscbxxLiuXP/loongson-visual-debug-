@@ -18,13 +18,19 @@
                     <el-menu-item index="/history">
                         <i class="faa fa fa-history"></i>
                         <span slot="title">
-                                历史调试信息
+                                日志管理
+                        </span>
+                    </el-menu-item>
+                    <el-menu-item index="/dataAnalysis">
+                        <i class="faa fa fa-bar-chart"></i>
+                        <span slot="title">
+                                TB数据分析
                         </span>
                     </el-menu-item>
                     <el-menu-item index="/trace">
                         <i class="faa fa fa-bolt "></i>
                         <span slot="title">
-                                Trace管理
+                                在线调试管理
                         </span>
                     </el-menu-item>
                     <el-submenu index="1">
