@@ -1,5 +1,5 @@
 FROM node:alpine AS builder
-
+LABEL stage=builder
 EXPOSE 80
 WORKDIR /app
 

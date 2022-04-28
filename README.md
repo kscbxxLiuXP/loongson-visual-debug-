@@ -74,18 +74,23 @@ npm run build
 
 ```shell
 cd loongson-visual-debug-frontend
-docker build --force-rm -t loongson-visual-debug-frontend .
+docker build -t loongson-visual-debug-frontend .
+#运行下面的代码以清除构建过程中的缓存
+docker image prune --filter label=stage=builder
 ```
 
 2. 运行
 
 ```shell
 docker run \
-    -p 8080:80 \
+    -p 8080:80 \ 
     -d \
     --name visual-debug-frontend \
     loongson-visual-debug-frontend
 ```
+将可用的访问端口(如:`8080`)映射到容器中
+
+使用局域网内其他电脑通过浏览器访问`http://ip:8080` (`ip` 是所部署的服务器的ip，如`10.2.5.5`)
 
 ## 项目文档
 
