@@ -1,162 +1,81 @@
 <template>
     <div id="instruction-analysis">
         <h3>指令翻译分析</h3>
-        <div id="chart" style="height: 500px"></div>
-        <div>
-            合并操作符与操作数
-            <el-switch
-                v-model="comboOperand"
-            >
-            </el-switch>
-        </div>
+        <el-tabs v-model="activeName" type="card">
+            <el-tab-pane label="指令总数统计图" name="first">
+                <div id="chart1" style="height: 500px"></div>
+            </el-tab-pane>
+            <el-tab-pane label="指令总数分布图" name="second">
+                <div id="chart1" style="height: 500px"></div>
+            </el-tab-pane>
+            <el-tab-pane label="operator分布图" name="third">
+                operator分布图
+            </el-tab-pane>
 
-        <div v-if="!comboOperand">
-            <div style="margin-top: 10px">
-                <span>Operator:</span>
-                <el-select size="small" v-model="operatorFilter" filterable placeholder="请选择" clearable
-                           @change="changeOperator">
-                    <el-option
-                        v-for="item in instructionTypes"
-                        :key="item"
-                        :label="item"
-                        :value="item">
-                    </el-option>
-                </el-select>
-                <span>排序:</span>
-                <el-select size="small" v-model="orderFilter" filterable placeholder="请选择" @change="changeOrder">
-                    <el-option
-                        label="升序"
-                        value="asc">
-                    </el-option>
-                    <el-option
-                        label="降序"
-                        value="desc">
-                    </el-option>
-                </el-select>
+            <el-tab-pane label="Tab4" name="fourth">
+                定时任务补偿
+            </el-tab-pane>
+        </el-tabs>
 
-            </div>
+        <el-tabs type="card" v-model="activeTable">
+            <el-tab-pane label="指令分析(全部)" name="first">
+                <TableAll ref="tableAll" :id="id" :instruction-types="instructionTypes"
+                          @drawPatternDistribute="drawPatternDistribute"/>
+            </el-tab-pane>
+            <el-tab-pane label="指令分析(合并pattern)" name="second">
+                <TablePattern ref="tablePattern" :id="id" :instruction-types="instructionTypes"
+                              @drawPatternDistribute="drawPatternDistribute"/>
+            </el-tab-pane>
+            <el-tab-pane label="指令分析(合并operator)" name="third">
+                <TableOperator :loading="loading" :instruction-maps-combo="instructionMapsCombo"/>
+            </el-tab-pane>
+        </el-tabs>
 
-            <el-table
-                v-loading="loading"
-                size="small"
-                :summary-method="getSummaries"
-                border
-                show-summary
-                :data="instructionMaps"
-                style="width: 100%;margin-top: 10px;font-size: 14px">
-                <el-table-column
-                    fixed
-                    label="序号"
-                    width="80">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{
-                                (instructionMapsCurrentPage - 1) * pageSize + scope.$index + 1
-                            }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="ltid" prop="ltid" width="110"></el-table-column>
-                <el-table-column label="indexx" prop="indexx" width="120"></el-table-column>
-                <el-table-column label="operator" prop="operator" width="100"></el-table-column>
-                <el-table-column label="operand" prop="operand" min-width="200"></el-table-column>
-                <el-table-column label="ir1instruction" width="400">
-                    <template slot-scope="scope">
-                        <div>
-                            <span class="ir1-operator">{{ scope.row.operator }}</span>
-                            <span class="ir2-operand">{{ scope.row.operand }}</span>
-                        </div>
-                    </template>
-                </el-table-column>
-                <el-table-column label="ir2instruction" width="400">
-                    <template slot-scope="scope">
-                        <div class="ir2instruction"
-                             v-for="(item,index) in resolveInstruction(scope.row.ir2instruction)">
-                            <span class="ir2-operator">{{ item.split(' ')[0] }}</span>
-                            <span class="ir2-operand">{{ item.split(' ')[1] }}</span>
-                        </div>
-                    </template>
-                </el-table-column>
-                <el-table-column label="num" fixed="right" min-width="100">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ toThousand(scope.row.num) }}</span>
-                    </template>
-                </el-table-column>
 
-            </el-table>
-
-            <el-pagination
-                @current-change="handleCurrentChangeInstructionMaps"
-                :current-page.sync="instructionMapsCurrentPage"
-                :page-size="pageSize"
-                layout="prev, pager, next, jumper"
-                :total="instructionMapsTotal">
-            </el-pagination>
-        </div>
-        <div v-if="comboOperand">
-            <el-table
-                v-loading="loading"
-                size="small"
-                border
-                :data="instructionMapsCombo"
-                style="width: 100%;margin-top: 10px;font-size: 14px">
-                <el-table-column
-                    fixed
-                    label="序号"
-                >
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.$index + 1 }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="operator" prop="operator"></el-table-column>
-                <el-table-column label="num" fixed="right">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ toThousand(scope.row.num) }}</span>
-                    </template>
-                </el-table-column>
-
-            </el-table>
-        </div>
     </div>
 </template>
 
 <script>
 import {basic_url} from "@/request/request";
 import * as echarts from 'echarts';
+import TableAll from "@/views/DataAnalysis/Components/InstructionAnalysis/TableAll";
+import TableOperator from "@/views/DataAnalysis/Components/InstructionAnalysis/TableOperator";
+import TablePattern from "@/views/DataAnalysis/Components/InstructionAnalysis/TablePattern";
 
 export default {
     name: "InstructionAnalysis",
+    components: {TablePattern, TableOperator, TableAll},
     props: ['id'],
     data() {
         return {
             comboOperand: false,
-            instructionMaps: [],
-            instructionMapsCurrentPage: 1,
-            instructionMapsTotal: 0,
-            pageSize: 10,
+
             instructionMapsCombo: [],
             loading: false,
             instructionTypes: [],
-            operatorFilter: '',
-            orderFilter: 'desc',
-            sum:0,
+
+            activeName: 'first',
+            activeTable: 'first'
+
 
         }
     },
     methods: {
-        changeOrder(val) {
-            this.getInstructionMaps()
+        drawPatternDistribute(operator) {
+            //绘制operator分布图
+            this.activeName = 'second'
         },
-        changeOperator(val) {
-            this.getInstructionMaps()
-        },
+
         initChart() {
-            var chartDom = document.getElementById('chart');
+            var that = this
+            var chartDom = document.getElementById('chart1');
             var myChart = echarts.init(chartDom);
             var option;
             var xLabel = []
-            var yData =[]
-            this.instructionMapsCombo.forEach(item=>{
+            var yData = []
+            this.instructionMapsCombo.forEach(item => {
                 xLabel.push(item.operator)
-                yData.push(item.num)
+                yData.push(item.sumir2)
             })
             option = {
                 title: {
@@ -166,7 +85,8 @@ export default {
                     trigger: 'axis',
                     axisPointer: {
                         type: 'shadow'
-                    }
+                    },
+                    formatter: `{b}:{c}`
                 },
                 legend: {},
                 grid: {
@@ -213,35 +133,18 @@ export default {
                 ]
             };
             myChart.setOption(option);
+            myChart.on('click', function (params) {
+                that.$refs.tableAll.operatorFilter = params.name
+                that.$refs.tableAll.changeOperator()
+            });
         },
-        resolveInstruction(instructions) {
-            return JSON.parse(instructions)
-        },
+
         toThousand(num = 0) {
             return num.toString().replace(/\d+/, function (n) {
                 return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
             })
         },
-        getInstructionMaps() {
-            this.loading = true
-            this.$axios.get(basic_url + '/ltlogInstructionMap/getAll',
-                {
-                    params:
-                        {
-                            operator: this.operatorFilter,
-                            order: this.orderFilter,
-                            ltid: this.id,
-                            currentPage: this.instructionMapsCurrentPage,
-                            limit: this.pageSize
-                        }
-                }
-            ).then(e => {
-                this.loading = false
-                this.instructionMaps = e.data.records
-                this.instructionMapsTotal = e.data.total
-                this.sum = e.data.sum
-            })
-        },
+
         getInstructionMapsComboed() {
             this.loading = true
             this.$axios.get(basic_url + '/ltlogInstructionMap/getCombo',
@@ -258,24 +161,8 @@ export default {
                 this.initChart()
             })
         },
-        handleCurrentChangeInstructionMaps(val) {
-            // console.log('change')
-            this.instructionMapsCurrentPage = val
-            this.getInstructionMaps()
-        },
-        getSummaries(param) {
-            const {columns, data} = param;
-            const sums = [];
-            columns.forEach((column, index) => {
-                if (index === 0) {
-                    sums[index] = '总计';
-                    return;
-                }
-                sums[7] = this.toThousand( this.sum)
-            });
 
-            return sums;
-        },
+
         getInstructionTypes() {
             this.$axios.get(basic_url + '/ltlogInstructionMap/getInstructionTypes',
                 {
@@ -292,7 +179,6 @@ export default {
     },
     mounted() {
         this.getInstructionTypes()
-        this.getInstructionMaps()
         this.getInstructionMapsComboed()
 
     }
@@ -300,28 +186,5 @@ export default {
 </script>
 
 <style scoped>
-.ir2-operator {
-    display: inline-block;
-    width: 150px;
-}
 
-.ir1-operator {
-    display: inline-block;
-    width: 100px;
-}
-
-.ir2instruction {
-    padding: 0 10px;
-    border-radius: 5px;
-    border: transparent 1px solid;
-    transition: all 300ms;
-}
-
-.ir2instruction:hover {
-    border: black 1px solid;
-}
-
-.ir2-operand {
-
-}
 </style>

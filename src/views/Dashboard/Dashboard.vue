@@ -6,6 +6,12 @@
             </div>
             <div class="entry-text">历史调试信息</div>
         </div>
+        <div class="entry" @click="jump('/dataAnalysis')">
+            <div class="entry-icon">
+                <i class="fa fa-bar-chart"></i>
+            </div>
+            <div class="entry-text">TB数据分析</div>
+        </div>
         <div class="entry" @click="jump('/debug/online')">
             <div class="entry-icon">
                 <i class="fa fa-code"></i>

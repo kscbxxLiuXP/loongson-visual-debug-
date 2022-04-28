@@ -87,5 +87,7 @@ export default {
     background-color: hsla(0, 0%, 49%, .7);
     -webkit-border-radius: 6px
 }
-
+.el-table .warning-row {
+    background: oldlace;
+}
 </style>
