@@ -27,7 +27,7 @@
             <el-table-column
                 label="文件名"
                 prop="filename"
-                width="180">
+                width="300">
             </el-table-column>
             <el-table-column
                 label="头文件id"

@@ -1,85 +1,83 @@
 <template>
     <div class="index">
-        <el-container>
-            <el-aside width="auto" style="background-color: rgb(238, 241, 246)">
-                <el-menu
-                    :collapse-transition="true"
-                    :collapse="collapse"
-                    style="height: 100%"
-                    :default-active="$route.path"
-                    router
-                    class="el-menu-vertical-demo"
-                    overflow-y: scroll
-                >
-                    <el-menu-item index="/dashboard">
-                        <i class="faa fa fa-home"></i>
-                        <span slot="title" style="margin-left: 5px">主页</span>
-                    </el-menu-item>
-                    <el-menu-item index="/history">
-                        <i class="faa fa fa-history"></i>
-                        <span slot="title">
-                                日志管理
-                        </span>
-                    </el-menu-item>
-                    <el-menu-item index="/dataAnalysis">
-                        <i class="faa fa fa-bar-chart"></i>
-                        <span slot="title">
-                                TB数据分析
-                        </span>
-                    </el-menu-item>
-                    <el-menu-item index="/trace">
-                        <i class="faa fa fa-bolt "></i>
-                        <span slot="title">
-                                在线调试管理
-                        </span>
-                    </el-menu-item>
-                    <el-submenu index="1">
-                        <template slot="title">
-                            <i class="el-icon-menu"></i>
-                            <span slot="title">调试</span>
-                        </template>
-                        <el-menu-item index="/debug/online">
-                            <i class="faa fa fa-code"></i>
-                            <span slot="title" style="margin-left: 10px">
-                                在线调试
-                            </span>
-                        </el-menu-item>
-                        <el-menu-item index="/debug/offline">
-                            <i class="faa fa fa-bug"></i>
-                            <span slot="title" style="margin-left: 10px">
-                                离线调试
-                            </span>
-                        </el-menu-item>
-                    </el-submenu>
-                </el-menu>
 
-            </el-aside>
+
 
             <el-container>
-                <el-header style="display: flex;justify-content: space-between;border-bottom: #B3C0D1 1px solid">
-                    <div @click="collapseClick" class="collapse-icon">
-                        <i class="el-icon-s-fold" v-if="!collapse"/>
-                        <i class="el-icon-s-unfold" v-if="collapse"/>
-                        <div v-if="collapse">展开</div>
-                        <div v-if="!collapse">收起</div>
+                <el-header style="display: flex;justify-content: space-between;border-bottom: #B3C0D1 1px solid;height: 61px">
+                    <div>
+                        可视化调试系统
                     </div>
-                    <el-dropdown>
-                        <div class="header-user">
-                            <el-avatar> {{ avatar }}</el-avatar>
-                            <div style="font-size: 18px;margin-left: 10px">
-                                {{ loginUsername }}
+                    <div style="display: flex">
+                        <el-menu
+
+                            :default-active="$route.path"
+                            router
+                            mode="horizontal"
+                            style="width: fit-content;margin: 0"
+                        >
+                            <el-menu-item index="/dashboard">
+                                <i class="faa fa fa-home"></i>
+                                <span slot="title" style="margin-left: 5px">主页</span>
+                            </el-menu-item>
+
+                            <el-menu-item index="/history">
+                                <i class="faa fa fa-history"></i>
+                                <span slot="title">
+                                日志管理
+                        </span>
+                            </el-menu-item>
+                            <el-menu-item index="/dataAnalysis">
+                                <i class="faa fa fa-bar-chart"></i>
+                                <span slot="title">
+                                TB数据分析
+                        </span>
+                            </el-menu-item>
+                            <el-menu-item index="/trace">
+                                <i class="faa fa fa-bolt "></i>
+                                <span slot="title">
+                                在线调试管理
+                        </span>
+                            </el-menu-item>
+                            <el-submenu index="1">
+                                <template slot="title">
+                                    <i class="el-icon-menu"></i>
+                                    <span slot="title">调试</span>
+                                </template>
+                                <el-menu-item index="/debug/online">
+                                    <i class="faa fa fa-code"></i>
+                                    <span slot="title" style="margin-left: 10px">
+                                在线调试
+                            </span>
+                                </el-menu-item>
+                                <el-menu-item index="/debug/offline">
+                                    <i class="faa fa fa-bug"></i>
+                                    <span slot="title" style="margin-left: 10px">
+                                离线调试
+                            </span>
+                                </el-menu-item>
+                            </el-submenu>
+                        </el-menu>
+                       <div style="width: 2px;background: #cccccc;margin: 20px"></div>
+                        <el-dropdown>
+                            <div class="header-user">
+                                <el-avatar :size="30"> {{ avatar }}</el-avatar>
+                                <div style="font-size: 18px;margin-left: 10px">
+                                    {{ loginUsername }}
+                                </div>
                             </div>
-                        </div>
-                        <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item @click.native="logout">退出登录</el-dropdown-item>
-                        </el-dropdown-menu>
-                    </el-dropdown>
+                            <el-dropdown-menu slot="dropdown">
+                                <el-dropdown-item @click.native="logout">退出登录</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </el-dropdown>
+                    </div>
+
                 </el-header>
                 <el-main style="padding: 0;margin: 0">
                     <router-view :key="key" style="height: 100%"/>
                 </el-main>
             </el-container>
-        </el-container>
+
     </div>
 </template>
 
@@ -164,17 +162,13 @@ export default {
 .header-user {
     padding: 0 10px;
     cursor: pointer;
-    height: 58px;
-    line-height: 58px;
+    height: 60px;
+    line-height: 60px;
     transition: all 500ms;
     display: flex;
     align-items: center;
 }
 
-.el-menu-vertical-demo:not(.el-menu--collapse) {
-    width: 200px;
-    min-height: 400px;
-}
 
 .header-user:hover {
     background-color: #f9f9f9;
