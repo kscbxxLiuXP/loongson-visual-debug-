@@ -5,10 +5,9 @@
 
             <el-container>
                 <el-header style="display: flex;justify-content: space-between;border-bottom: #B3C0D1 1px solid;height: 61px">
-                    <div>
-                        可视化调试系统
-                    </div>
                     <div style="display: flex">
+                        可视化调试系统
+                        <div style="width: 2px;background: #cccccc;margin: 15px 15px 15px 30px;"></div>
                         <el-menu
 
                             :default-active="$route.path"
@@ -58,7 +57,10 @@
                                 </el-menu-item>
                             </el-submenu>
                         </el-menu>
-                       <div style="width: 2px;background: #cccccc;margin: 20px"></div>
+
+                    </div>
+                    <div style="display: flex">
+
                         <el-dropdown>
                             <div class="header-user">
                                 <el-avatar :size="30"> {{ avatar }}</el-avatar>

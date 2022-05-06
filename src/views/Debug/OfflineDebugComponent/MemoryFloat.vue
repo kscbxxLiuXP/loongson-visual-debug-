@@ -87,6 +87,7 @@ export default {
     right: 35px;
     height: fit-content;
     transition: all 300ms linear;
+    z-index: 10;
 
 }
 

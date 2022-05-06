@@ -43,15 +43,18 @@
                 <div class="boxLoading" v-show="tbloading"/>
                 <!--主体-->
                 <div style="height: 100%;overflow-y: scroll" class="target-scroll">
-                    <div
-                        style="background-color: #f7f8f9;padding: 5px;font-size: 14px;display: flex;align-items: center;border-radius: 10px;border: #e6e6e6 1px solid;margin-bottom: 10px;margin-top: 5px">
-                        <div style="line-height: 30px;margin-left: 10px">
-                            日志文件共{{ toThousand(ltlog.line) }}行， 解析了共{{ toThousand(simpleTbBlocks.length) }}个TB块
+                    <div style="position: sticky;top: 0;padding: 5px 0;z-index: 3;background: white">
+                        <div
+                            style="background-color: #f7f8f9;padding: 5px;font-size: 14px;display: flex;align-items: center;border-radius: 10px;border: #e6e6e6 1px solid;">
+                            <div style="line-height: 30px;margin-left: 10px">
+                                日志文件共{{ toThousand(ltlog.line) }}行， 解析了共{{ toThousand(simpleTbBlocks.length) }}个TB块
+                            </div>
+                            <el-button size="mini" style="margin-left: 10px" @click="clickHeadM">跳转到日志头部</el-button>
+                            <el-button size="mini" style="margin-left: 10px" @click="clickJumpTB">跳转到TB块</el-button>
+                            <el-button size="mini" style="margin-left: 10px" @click="clickShowDrawer">已固定TB块</el-button>
                         </div>
-                        <el-button size="mini" style="margin-left: 10px" @click="clickHeadM">跳转到日志头部</el-button>
-                        <el-button size="mini" style="margin-left: 10px" @click="clickJumpTB">跳转到TB块</el-button>
-                        <el-button size="mini" style="margin-left: 10px" @click="clickShowDrawer">已固定TB块</el-button>
                     </div>
+
                     <!---------TB块头部 ST--------->
                     <div id="lt-head" class="lt-head" v-if="currentPage===1">
                         <div class="tbblock-title">
@@ -177,7 +180,7 @@ export default {
             },
             tbBlocks: [],
             keywords: '',
-            expand: true,
+            expand: false,
             showDrawer: false,
             //选中IR1之后需要记录的信息
             currentTB: -1,
@@ -185,7 +188,7 @@ export default {
             selectIR2End: -1,
             letfDom: null,
             clientStartX: 0,
-            width: '100%',
+            width: '50%',
 
             //原始的所有trace数据
             traceData: [],
