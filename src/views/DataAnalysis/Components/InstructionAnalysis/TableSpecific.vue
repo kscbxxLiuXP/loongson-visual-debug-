@@ -1,68 +1,21 @@
 <template>
     <div>
         <div style="margin-top: 10px">
-            <span>Operator:</span>
-            <el-select v-model="operatorFilter" clearable filterable placeholder="请选择" size="small"
-                       @change="changeOperator">
-                <el-option
-                    v-for="item in instructionTypes"
-                    :key="item"
-                    :label="item"
-                    :value="item">
-                </el-option>
-            </el-select>
+            <span>当前组合:</span>
+            {{ operatorFilter }}{{ patternFilter }}
+        </div>
+        <div v-if="operatorFilter===''&&patternFilter===''"
+             style="text-align: center;align-items: center;height: 200px;display: flex;justify-content: center">
+            <div>
+                请在其他标签页筛选opertaor和pattern
+                (点击表格中的pattern标签)
+            </div>
 
-        </div>
-        <div style="margin-top: 5px">
-            已合并：
-            <el-tag v-if="comboed.length===0">
-                无
-            </el-tag>
-            <el-tag
-                v-for="tag in comboed"
-                :key="tag.flag"
-                :disable-transitions="false"
-                closable
-                style="margin-left: 5px"
-                @close="cancelCombo(tag.operator,tag.pattern)">
-                {{ tag.operator }} {{ tag.pattern }}
-            </el-tag>
-        </div>
-        <div style="margin-top: 5px">
-            已隐藏Operator：
-            <el-tag v-if="hiddenOperator.length===0">
-                无
-            </el-tag>
-            <el-tag
-                v-for="tag in hiddenOperator"
-                :key="tag"
-                :disable-transitions="false"
-                closable
-                style="margin-left: 5px"
-                @close="cancelHiddenOperator(tag)">
-                {{ tag }}
-            </el-tag>
-        </div>
-        <div style="margin-top: 5px">
-            已隐藏Pattern：
-            <el-tag v-if="hidden.length===0">
-                无
-            </el-tag>
-            <el-tag
-                v-for="tag in hidden"
-
-                :key="tag.flag"
-                :disable-transitions="false"
-                closable
-                style="margin-left: 5px"
-                @close="cancelHidden(tag.operator,tag.pattern)">
-                {{ tag.operator }} {{ tag.pattern }}
-            </el-tag>
         </div>
         <el-table
+            v-if="operatorFilter!==''&&patternFilter!==''"
             v-loading="loading"
             :data="instructionMaps"
-            :row-class-name="tableRowClassName"
             :summary-method="getSummaries"
             border
             show-summary
@@ -106,12 +59,11 @@
                                     {{ (scope.row.ir2execute / operatorInfo.ir2execute * 100).toFixed(6) }}%
                                 </div>
                             </div>
-                            <el-button v-if="operatorFilter===''" size="mini" type="text"
-                                       @click="hideOperator(scope.row.operator)">隐藏{{ scope.row.operator }}
-                            </el-button>
+                            <!--                            <el-button v-if="operatorFilter===''" size="mini" type="text"-->
+                            <!--                                       @click="hideOperator(scope.row.operator)">隐藏{{ scope.row.operator }}-->
+                            <!--                            </el-button>-->
 
-                            <div slot="reference" class="table-operator"
-                                 @click="()=>{operatorFilter=scope.row.operator;$emit('operatorClick',scope.row.operator);changeOperator()}">
+                            <div slot="reference" class="table-operator">
                                 {{
                                     scope.row.operator
                                 }}
@@ -153,29 +105,29 @@
                                     {{ patternInfo.percentageir2All }}%
                                 </div>
                             </div>
-                            <el-button v-if="comboBtnVisible(scope.row.operator,scope.row.pattern)"
-                                       size="mini"
-                                       type="text"
-                                       @click="comboPattern(scope.row.operator,scope.row.pattern)">合并此类型
-                            </el-button>
-                            <el-button v-if="!comboBtnVisible(scope.row.operator,scope.row.pattern)" size="mini"
-                                       type="text"
-                                       @click="cancelCombo(scope.row.operator,scope.row.pattern)">取消合并
-                            </el-button>
-                            <el-button size="mini" type="text"
-                                       @click="hidePattern(scope.row.operator,scope.row.pattern)">隐藏这一类指令
-                            </el-button>
+                            <!--                            <el-button v-if="comboBtnVisible(scope.row.operator,scope.row.pattern)"-->
+                            <!--                                       size="mini"-->
+                            <!--                                       type="text"-->
+                            <!--                                       @click="comboPattern(scope.row.operator,scope.row.pattern)">合并此类型-->
+                            <!--                            </el-button>-->
+                            <!--                            <el-button v-if="!comboBtnVisible(scope.row.operator,scope.row.pattern)" size="mini"-->
+                            <!--                                       type="text"-->
+                            <!--                                       @click="cancelCombo(scope.row.operator,scope.row.pattern)">取消合并-->
+                            <!--                            </el-button>-->
+                            <!--                            <el-button size="mini" type="text"-->
+                            <!--                                       @click="hidePattern(scope.row.operator,scope.row.pattern)">隐藏这一类指令-->
+                            <!--                            </el-button>-->
 
                             <div slot="reference" class="pattern"
                                  @click="patternClick(scope.row.operator,scope.row.pattern)">
                                 {{ scope.row.pattern }}
                             </div>
                         </el-popover>
-                        <span
-                            v-if="!scope.row.uid"
-                            style="padding: 2px 5px; background: #fff0f6; border: #ffacd1 1px solid; color: #cc3794;border-radius: 3px; font-size: 12px;">
-                            已合并
-                        </span>
+                        <!--                        <span-->
+                        <!--                            v-if="!scope.row.uid"-->
+                        <!--                            style="padding: 2px 5px; background: #fff0f6; border: #ffacd1 1px solid; color: #cc3794;border-radius: 3px; font-size: 12px;">-->
+                        <!--                            已合并-->
+                        <!--                        </span>-->
                     </template>
                 </el-table-column>
             </el-table-column>
@@ -215,11 +167,12 @@
         </el-table>
 
         <el-pagination
+            v-if="operatorInfo!==''&&patternFilter!==''"
+            @current-change="handleCurrentChangeInstructionMaps"
             :current-page.sync="instructionMapsCurrentPage"
             :page-size="pageSize"
-            :total="instructionMapsTotal"
             layout="prev, pager, next, jumper"
-            @current-change="handleCurrentChangeInstructionMaps">
+            :total="instructionMapsTotal">
         </el-pagination>
     </div>
 </template>
@@ -228,11 +181,12 @@
 import {basic_url} from "@/request/request";
 
 export default {
-    name: "TableAll",
+    name: "TableSpecific",
     props: ['id', 'instructionTypes'],
     data() {
         return {
             operatorFilter: '',
+            patternFilter: '',
             orderFilter: 'desc',
             orderBy: 'ir2execute',
             sumir1: 0,
@@ -242,9 +196,6 @@ export default {
             instructionMapsTotal: 0,
             pageSize: 10,
             loading: false,
-            comboed: [],
-            hidden: [],
-            hiddenOperator: [],
             patterns: [],
             patternInfo: {
                 ir1execute: 0,
@@ -258,23 +209,17 @@ export default {
             operatorInfo: {
                 ir1execute: 0,
                 ir2execute: 0,
-            }
+            },
+            specificOperator: '',
+            specificPattern: '',
         }
     },
     methods: {
-        tableRowClassName({row, rowIndex}) {
 
-            if (row.uid === "") {
-                return 'warning-row';
-            }
-            return '';
-        },
         //跳转到绘图
         patternClick(operator, pattern) {
             //绘图operator下所有pattern的分布情况
             this.$emit('drawPatternDistribute', operator, pattern)
-            this.$emit('patternClick', operator, pattern)
-
         },
         patternPopoverShow(operator, pattern) {
             this.patternInfo = this.getPatternInfo(operator, pattern)
@@ -327,86 +272,11 @@ export default {
                 ir2execute: ir2execute,
             }
         },
-        comboBtnVisible(operator, pattern) {
-            let flag = operator + "|" + pattern
-            let visible = true
-            this.comboed.forEach(e => {
-                if (e.flag === flag) {
-                    visible = false
-                }
-            })
-            return visible;
-        },
+
         resolveInstruction(instructions) {
             return JSON.parse(instructions)
         },
-        cancelCombo(operator, pattern) {
-            let flag = operator + "|" + pattern
-            var index
-            for (let i = 0; i < this.comboed.length; i++) {
-                if (this.comboed[i].flag === flag) {
-                    index = i
-                    break;
-                }
-            }
 
-            this.comboed.splice(index, 1);
-            this.getInstructionMapsAll()
-        },
-        cancelHiddenOperator(operator) {
-            let flag = operator
-            var index
-            for (let i = 0; i < this.hiddenOperator.length; i++) {
-                if (this.hiddenOperator[i] === flag) {
-                    index = i
-                    break;
-                }
-            }
-
-            this.hiddenOperator.splice(index, 1);
-            this.getInstructionMapsAll()
-        },
-        cancelHidden(operator, pattern) {
-            let flag = operator + "|" + pattern
-            var index
-            for (let i = 0; i < this.hidden.length; i++) {
-                if (this.hidden[i].flag === flag) {
-                    index = i
-                    break;
-                }
-            }
-
-            this.hidden.splice(index, 1);
-            this.getInstructionMapsAll()
-        },
-        //组合一种pattern的数据
-        comboPattern(operator, pattern) {
-            this.comboed.push(
-                {
-                    flag: operator + "|" + pattern,
-                    operator: operator,
-                    pattern: pattern
-                }
-            )
-            this.getInstructionMapsAll()
-        },
-        //隐藏一种pattern
-        hidePattern(operator, pattern) {
-            this.hidden.push(
-                {
-                    flag: operator + "|" + pattern,
-                    operator: operator,
-                    pattern: pattern
-                }
-            )
-            this.getInstructionMapsAll()
-
-        },
-        hideOperator(operator) {
-            this.hiddenOperator.push(operator)
-            this.getInstructionMapsAll()
-
-        },
         handleSort(target) {
             let order = ''
             if (target.order === "ascending") {
@@ -418,13 +288,6 @@ export default {
             this.orderFilter = order
             this.getInstructionMapsAll()
         },
-        changeOperator(val) {
-            this.hidden = []
-            this.comboed = []
-            this.instructionMapsCurrentPage = 1
-            this.getInstructionMapsAll()
-
-        },
         toThousand(num = 0) {
             return num.toString().replace(/\d+/, function (n) {
                 return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
@@ -434,17 +297,14 @@ export default {
             this.loading = true
             let data = {
                 operator: this.operatorFilter,
+                pattern:this.patternFilter,
                 order: this.orderFilter,
                 orderby: this.orderBy,
                 ltid: this.id,
                 currentPage: this.instructionMapsCurrentPage,
                 limit: this.pageSize,
-                comboed: this.comboed,
-                hidden: this.hidden,
-                hiddenOperator: this.hiddenOperator
-
             }
-            this.$axios.post(basic_url + '/ltlogInstructionMap/getAll',
+            this.$axios.post(basic_url + '/ltlogInstructionMap/getSpecific',
                 data
             ).then(e => {
                 this.loading = false
@@ -452,19 +312,6 @@ export default {
                 this.instructionMapsTotal = e.data.total
                 this.sumir1 = e.data.sumir1
                 this.sumir2 = e.data.sumir2
-            })
-        },
-        getPatterns() {
-            this.$axios.get(basic_url + '/ltlogInstructionMap/getPatterns',
-                {
-                    params:
-                        {
-                            ltid: this.id,
-                        }
-                }
-            ).then(e => {
-                this.loading = false
-                this.patterns = e.data
             })
         },
         getSummaries(param) {
@@ -480,15 +327,25 @@ export default {
             return sums;
         },
         handleCurrentChangeInstructionMaps(val) {
-            // console.log('change')
             this.instructionMapsCurrentPage = val
             this.getInstructionMapsAll()
         },
+        getPatterns() {
+            this.$axios.get(basic_url + '/ltlogInstructionMap/getPatterns',
+                {
+                    params:
+                        {
+                            ltid: this.id,
+                        }
+                }
+            ).then(e => {
+                this.loading = false
+                this.patterns = e.data
+            })
+        },
     },
     mounted() {
-        this.getInstructionMapsAll()
         this.getPatterns()
-
     }
 }
 </script>

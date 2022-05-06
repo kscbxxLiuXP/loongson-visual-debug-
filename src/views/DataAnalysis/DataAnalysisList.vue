@@ -20,9 +20,37 @@
                 </template>
             </el-table-column>
             <el-table-column
-                label="ltid"
-                prop="ltid"
-                width="50">
+                label="文件名"
+                prop="filename"
+                width="180">
+                <template slot-scope="scope">
+                    <span >{{ scope.row.ltlog.filename }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column
+                label="大小(Bytes)"
+                prop="size"
+                width="180">
+                <template slot-scope="scope">
+                    <span>{{ toThousand(scope.row.ltlog.size) }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column
+                label="行数"
+                prop="line"
+                width="180">
+                <template slot-scope="scope">
+                    <span>{{ toThousand(scope.row.ltlog.line) }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column
+                label="上传时间"
+            >
+                <template slot-scope="scope">
+                    <span >{{ scope.row.ltlog.uploadtime }}</span>
+                </template>
+
+
             </el-table-column>
             <el-table-column
                 label="gen code size">
@@ -210,6 +238,7 @@ export default {
                 this.tableData = e.data.records
                 this.total = e.data.total
                 this.pages = e.data.pages
+                console.log(e.data.records)
             })
         },
         uploadAddress: function () {

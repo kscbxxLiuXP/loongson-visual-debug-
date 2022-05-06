@@ -1,10 +1,10 @@
 <template>
     <el-table
-        v-loading="loading"
         key="2222"
-        size="small"
-        border
+        v-loading="loading"
         :data="instructionMapsCombo"
+        border
+        size="small"
         style="margin-top: 10px;font-size: 14px">
         <el-table-column
             label="序号"
@@ -32,7 +32,7 @@
 <script>
 export default {
     name: "TableOperator",
-    props:['loading','instructionMapsCombo'],
+    props: ['loading', 'instructionMapsCombo'],
     methods: {
         toThousand(num = 0) {
             return num.toString().replace(/\d+/, function (n) {

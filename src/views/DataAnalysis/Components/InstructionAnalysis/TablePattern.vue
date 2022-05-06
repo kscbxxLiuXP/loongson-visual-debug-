@@ -94,7 +94,7 @@
                             </el-button>
 
                             <div class="table-operator" slot="reference"
-                                 @click="()=>{operatorFilter=scope.row.operator;changeOperator()}">{{
+                                 @click="()=>{operatorFilter=scope.row.operator;$emit('operatorClick',scope.row.operator);changeOperator()}">{{
                                     scope.row.operator
                                 }}
                             </div>
@@ -255,6 +255,8 @@ export default {
         patternClick(operator, pattern) {
             //绘图operator下所有pattern的分布情况
             this.$emit('drawPatternDistribute', operator, pattern)
+            this.$emit('patternClick', operator, pattern)
+
         },
         patternPopoverShow(row) {
             this.patternInfo = this.getPatternInfo(row)
@@ -350,6 +352,7 @@ export default {
         changeOperator(val) {
             this.hidden = []
             this.comboed = []
+            this.instructionMapsCurrentPage = 1
             this.getInstructionMapsAll()
 
         },
@@ -373,7 +376,6 @@ export default {
 
 
             }
-            console.log(data)
             this.$axios.post(basic_url + '/ltlogInstructionMap/getAllPatterned',
                 data
             ).then(e => {
@@ -478,6 +480,23 @@ export default {
 .el-table .warning-row {
     background: oldlace;
 }
+.table-operator{
+    padding: 2px 5px;
+    background: #fff0f6;
+    border: #ffacd1 1px solid;
+    color: #cc3794;
+    width: fit-content;
+    border-radius: 3px;
+    font-size: 12px;
+    line-height: 16px;
+    transition: all 300ms;
+    cursor: pointer;
 
+}
+.table-operator:hover{
+
+    background: #e676a8;
+    color: white;
+}
 
 </style>
