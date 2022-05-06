@@ -72,7 +72,22 @@
 
                     </template>
                 </el-table-column>
-                <el-table-column label="operand" min-width="200" prop="operand"></el-table-column>
+                <el-table-column label="operand" min-width="200" prop="operand">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.operand }}</span>
+                        <el-popover placement="top" trigger="hover">
+                            <div class="pattern-filter">
+                                <span class="pattern-filter-pattern">源自以下TB index:</span>
+                            </div>
+                            <ul>
+                                <li :key="index" v-for="(item,index) in JSON.parse(scope.row.tbs) ">TB-{{item}}</li>
+                            </ul>
+
+                            <span slot="reference" style="margin-left: 10px" class="table-operator"><i class="fa fa-crosshairs"/>定位出处</span>
+                        </el-popover>
+
+                    </template>
+                </el-table-column>
                 <el-table-column label="pattern" min-width="200" prop="pattern">
                     <template slot-scope="scope">
                         <el-popover placement="top" trigger="hover"
