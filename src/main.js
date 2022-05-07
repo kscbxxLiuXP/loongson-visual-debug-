@@ -6,13 +6,16 @@ import 'font-awesome/css/font-awesome.min.css'
 import VueRouter from "vue-router";
 import axios from "axios";
 import router from "@/router";
+import {util} from "@/util/util"
 
 
 Vue.prototype.$message = Message;
 Vue.prototype.$axios = axios
+Vue.prototype.$util = util
 Vue.config.productionTip = false
 Vue.use(ElementUI);
 Vue.use(VueRouter);
+
 
 // eslint-disable-next-line vue/multi-word-component-names
 

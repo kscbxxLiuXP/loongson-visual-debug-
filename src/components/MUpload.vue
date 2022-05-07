@@ -6,7 +6,7 @@
             :on-error="onError"
             :before-upload="beforeUpload"
             :disabled="uploading"
-            :action="address">
+            :action="address+'&uuid='+uuid">
             <div v-bind:class="small?'uploadd-small':'uploadd'">
                 <div v-bind:class="small?'uploadd-icon-small':'uploadd-icon'">
                     <i v-bind:class="icon"></i>
@@ -19,6 +19,8 @@
 </template>
 
 <script>
+import {upload_websocket} from "@/request/request";
+
 export default {
     name: "MUpload",
     props: ['successCallback', 'tipText', 'address', 'failCallback', 'beforeUploadCallback', 'small'],
@@ -27,6 +29,8 @@ export default {
             uploading: false,
             icon: "fa fa-upload",
             text: "上传" + this.tipText + "文件",
+            uuid: '',
+            websock: null,
         }
     },
     methods: {
@@ -56,7 +60,43 @@ export default {
             if (this.beforeUploadCallback)
                 this.beforeUploadCallback()
         },
-    }
+        initWebSocket() {
+            this.websock = new WebSocket(upload_websocket + this.uuid)
+            this.websock.onmessage = this.websocketonmessage
+            this.websock.onerror = this.websocketonerror
+            this.websock.onopen = this.websocketonopen
+            this.websock.onclose = this.websocketclose
+
+        },
+        // 连接建立之后执行send方法发送数据
+        websocketonopen() {
+            console.log("连接socket")
+        },
+        websocketonerror() {
+            console.log('WebSocket连接失败')
+        },
+        // 数据接收
+        websocketonmessage(e) {
+            //处理各种数据
+            console.log(e.data)
+            this.text = e.data
+
+        },
+        // 数据发送
+        websocketsend(Data) {
+            this.websock.send(Data)
+        },
+        // 关闭
+        websocketclose(e) {
+            console.log('已关闭连接', e)
+        },
+
+    },
+    mounted() {
+        this.uuid = this.$util.uuid()
+        this.initWebSocket()
+        console.log(this.uuid)
+    },
 }
 </script>
 

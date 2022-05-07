@@ -608,7 +608,6 @@ export default {
         // })
         // window.addEventListener('scroll', this.onScroll, true)
         window.addEventListener("scroll", function (e) {
-            console.log(e);
         },true);
     },
     destroyed() {
