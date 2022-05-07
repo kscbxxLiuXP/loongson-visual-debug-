@@ -6,7 +6,7 @@
             <el-container>
                 <el-header style="display: flex;justify-content: space-between;border-bottom: #B3C0D1 1px solid;height: 61px">
                     <div style="display: flex">
-                        可视化调试系统
+                        <h3 style="margin: 0;padding: 0">可视化调试系统</h3>
                         <div style="width: 2px;background: #cccccc;margin: 15px 15px 15px 30px;"></div>
                         <el-menu
 

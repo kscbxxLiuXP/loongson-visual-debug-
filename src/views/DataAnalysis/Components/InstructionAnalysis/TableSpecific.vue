@@ -2,7 +2,12 @@
     <div>
         <div style="margin-top: 10px">
             <span>当前组合:</span>
-            {{ operatorFilter }}{{ patternFilter }}
+            <span style=" display: inline-flex; padding: 2px 5px; background: orange; color: white;">
+                {{ operatorFilter }}
+            </span>
+            <span style="display: inline-flex; padding: 2px 5px; background: #f466ad; color: white;">
+                {{ patternFilter }}
+            </span>
         </div>
         <div v-if="operatorFilter===''&&patternFilter===''"
              style="text-align: center;align-items: center;height: 200px;display: flex;justify-content: center">
@@ -80,10 +85,11 @@
                                 <span class="pattern-filter-pattern">源自以下TB index:</span>
                             </div>
                             <ul>
-                                <li :key="index" v-for="(item,index) in JSON.parse(scope.row.tbs) ">TB-{{item}}</li>
+                                <li :key="index" v-for="(item,index) in JSON.parse(scope.row.tbs) ">TB-{{ item }}</li>
                             </ul>
 
-                            <span slot="reference" style="margin-left: 10px" class="table-operator"><i class="fa fa-crosshairs"/>定位出处</span>
+                            <span slot="reference" style="margin-left: 10px" class="table-operator"><i
+                                class="fa fa-crosshairs"/>定位出处</span>
                         </el-popover>
 
                     </template>
@@ -312,7 +318,7 @@ export default {
             this.loading = true
             let data = {
                 operator: this.operatorFilter,
-                pattern:this.patternFilter,
+                pattern: this.patternFilter,
                 order: this.orderFilter,
                 orderby: this.orderBy,
                 ltid: this.id,

@@ -76,7 +76,8 @@
                 <template slot-scope="scope">
                         <span style="margin-left: 10px">{{
                                 (instructionMapsCurrentPage - 1) * pageSize + scope.$index + 1
-                            }}</span>
+                            }}
+                        </span>
                 </template>
             </el-table-column>
 
@@ -123,15 +124,16 @@
                 <el-table-column label="operand" min-width="200" prop="operand">
                     <template slot-scope="scope">
                         <span>{{ scope.row.operand }}</span>
-                        <el-popover placement="top" trigger="hover">
+                        <el-popover placement="top" trigger="hover" v-if="scope.row.uid!==''">
                             <div class="pattern-filter">
                                 <span class="pattern-filter-pattern">源自以下TB index:</span>
                             </div>
                             <ul>
-                                <li :key="index" v-for="(item,index) in JSON.parse(scope.row.tbs) ">TB-{{item}}</li>
+                                <li :key="index" v-for="(item,index) in JSON.parse(scope.row.tbs) ">TB-{{ item }}</li>
                             </ul>
 
-                            <span slot="reference" style="margin-left: 10px" class="table-operator"><i class="fa fa-crosshairs"/>定位出处</span>
+                            <span slot="reference"  style="margin-left: 10px" class="table-operator"><i
+                                class="fa fa-crosshairs"  />定位出处</span>
                         </el-popover>
 
                     </template>
@@ -181,14 +183,14 @@
                                        @click="hidePattern(scope.row.operator,scope.row.pattern)">隐藏这一类指令
                             </el-button>
 
-                            <div slot="reference" class="pattern"
+                            <span slot="reference" class="pattern"
                                  @click="patternClick(scope.row.operator,scope.row.pattern)">
                                 {{ scope.row.pattern }}
-                            </div>
+                            </span>
                         </el-popover>
                         <span
-                            v-if="!scope.row.uid"
-                            style="padding: 2px 5px; background: #fff0f6; border: #ffacd1 1px solid; color: #cc3794;border-radius: 3px; font-size: 12px;">
+                            v-if="scope.row.uid===''"
+                            style="padding: 2px 5px; background: #fff0f6; border: #ffacd1 1px solid; color: #cc3794;border-radius: 3px; font-size: 12px;margin-left: 5px">
                             已合并
                         </span>
                     </template>
@@ -467,6 +469,7 @@ export default {
                 this.instructionMapsTotal = e.data.total
                 this.sumir1 = e.data.sumir1
                 this.sumir2 = e.data.sumir2
+                console.log(e.data.records)
             })
         },
         getPatterns() {

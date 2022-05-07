@@ -42,7 +42,7 @@
                 <!--加载动画-->
                 <div class="boxLoading" v-show="tbloading"/>
                 <!--主体-->
-                <div style="height: 100%;overflow-y: scroll" class="target-scroll">
+                <div id="scroll-body" style="height: 100%;overflow-y: scroll" class="target-scroll">
                     <div style="position: sticky;top: 0;padding: 5px 0;z-index: 3;background: white">
                         <div
                             style="background-color: #f7f8f9;padding: 5px;font-size: 14px;display: flex;align-items: center;border-radius: 10px;border: #e6e6e6 1px solid;">
@@ -165,7 +165,7 @@ export default {
                 ltid: '',
                 uid: '',
             },
-            addressIndexMap:{},
+            addressIndexMap: {},
             ltlog: {
                 filename: '',
                 headid: '',
@@ -381,7 +381,8 @@ export default {
             }).then(e => {
                 that.tbloading = false
                 that.loading = false
-                document.getElementById("lt-head").scrollIntoView(this.scrollIntoViewOptions)
+                document.getElementById("lt-head").scrollIntoView()
+                document.getElementById("scroll-body").scrollBy(0, -80)
             })
         },
         clickJumpTB() {
@@ -430,7 +431,8 @@ export default {
                 //直接跳转元素
                 // 获取文档中 id="demo" 的元素：
                 // console.log("#TB-" + tbindex)
-                document.getElementById("TB-" + tbindex).scrollIntoView(this.scrollIntoViewOptions)
+                document.getElementById("TB-" + tbindex).scrollIntoView()
+                document.getElementById("scroll-body").scrollBy(0, -100)
             } else {
                 //不在当前页面
                 //需要刷新数据
@@ -456,8 +458,8 @@ export default {
                 }).then(e => {
                     this.selectSearch()
                     that.tbloading = false
-                    document.getElementById("TB-" + tbindex).scrollIntoView(this.scrollIntoViewOptions)
-
+                    document.getElementById("TB-" + tbindex).scrollIntoView()
+                    document.getElementById("scroll-body").scrollBy(0, -100)
                 })
             }
         },
@@ -478,7 +480,8 @@ export default {
             // console.log(this.pageSize)
             let nextpage = Math.floor(tbindex / this.pageSize) + 1
             if (this.currentPage === nextpage) {
-                document.getElementById(selectID).scrollIntoView(this.scrollIntoViewOptions)
+                document.getElementById(selectID).scrollIntoView()
+                document.getElementById("scroll-body").scrollBy(0, -500)
             } else {
                 //不在当前页面
                 //需要刷新数据
@@ -501,7 +504,8 @@ export default {
                 }).then(e => {
                     this.selectSearch()
                     that.tbloading = false
-                    document.getElementById(selectID).scrollIntoView(this.scrollIntoViewOptions)
+                    document.getElementById(selectID).scrollIntoView()
+                    document.getElementById("scroll-body").scrollBy(0, -500)
                 })
             }
         },
@@ -599,10 +603,13 @@ export default {
             }
         })
         this.getData()
-        this.$nextTick(function () {
-            document.querySelector('#app').addEventListener('scroll', this.onScroll)
-        })
-        window.addEventListener('scroll', this.onScroll, true)
+        // this.$nextTick(function () {
+        //     document.querySelector('#app').addEventListener('scroll', this.onScroll)
+        // })
+        // window.addEventListener('scroll', this.onScroll, true)
+        window.addEventListener("scroll", function (e) {
+            console.log(e);
+        },true);
     },
     destroyed() {
         window.removeEventListener('scroll', this.onScroll, true)

@@ -114,18 +114,32 @@ export default {
             var option;
             var xLabel = []
             var yData = []
+            var total = 0
             this.instructionMapsCombo.forEach(item => {
                 xLabel.push(item.operator)
                 yData.push(item.sumir2)
+                total+=item.sumir2
             })
+            const toThousand=(num = 0) =>{
+                return num.toString().replace(/\d+/, function (n) {
+                    return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
+                })
+            }
             option = {
-
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: {
                         type: 'cross'
                     },
-                    formatter: `{b}:{c}`
+                    formatter: function (params) {
+                        var result = ''
+                        var operator=`<span style=" display: inline-flex;padding: 2px 5px;background: #f466ad;color: white;">${params[0].axisValue}</span>`
+                        var dotHtml = '<span style="display:inline-block;margin-right:5px;border-radius:50px;width:5px;height:5px;background-color:#F1E67F"></span>'    // 定义第一个数据前的圆点颜色
+                        var dotHtml2 = '<span style="display:inline-block;margin-right:5px;border-radius:50px;width:5px;height:5px;background-color:#2BA8F1"></span>'    // 定义第二个数据前的圆点颜色
+                        result += operator+ "</br>" + dotHtml + ' 总计: ' + toThousand(params[0].data)  + "</br>" + dotHtml2 + ' 占比 '+ (params[0].data/total*100).toFixed(5)+'%';
+                        return result
+                    }
+
                 },
                 legend: {},
                 grid: {
