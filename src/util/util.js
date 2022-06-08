@@ -26,6 +26,17 @@ export const transDate = (strtime) => {
     return result;
 }
 
+function renderSize(value) {
+
+    var unitArr = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    var index = 0;
+    var srcsize = parseFloat(value);
+    index = Math.floor(Math.log(srcsize) / Math.log(1024));
+    var size = srcsize / Math.pow(1024, index);
+    size = size.toFixed(2);//保留的小数位数
+    return {'size': size, 'type': unitArr[index]};
+}
+
 function uuid() {
     var s = [];
     var hexDigits = "0123456789abcdef";
@@ -39,7 +50,8 @@ function uuid() {
     return s.join("");
 }
 
-export  const util={
+export const util = {
     uuid,
+    renderSize,
 
 }

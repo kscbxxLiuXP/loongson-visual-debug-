@@ -100,7 +100,7 @@
             <!---------悬浮分页组件ST--------->
             <div
                 v-if="!expand"
-                style="position: absolute;bottom: 10px;background-color: #f7f8f9;left: calc(50% - 300px);padding: 5px 10px;border-radius: 10px;display: flex;align-items: center">
+                style="position: absolute;bottom: 10px;background-color: #f7f8f9;left: calc(50% - 300px);padding: 5px 10px;border-radius: 10px;display: flex;align-items: center;z-index: 99">
                 <div style="background-color: white;padding: 6px 10px;font-size: 14px">{{ getTbBlockRange() }}</div>
                 <el-pagination
                     @size-change="handleSizeChange"
@@ -671,7 +671,7 @@ export default {
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 10;
+    z-index: 101;
     background: rgba(49, 48, 48, 0.3);
 }
 
@@ -691,6 +691,7 @@ export default {
     right: 0;
     top: 0;
     bottom: 0;
+    z-index: 100;
 }
 
 .load-container .boxLoading:before {

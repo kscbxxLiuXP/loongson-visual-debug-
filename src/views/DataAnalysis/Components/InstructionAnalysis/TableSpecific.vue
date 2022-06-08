@@ -8,6 +8,10 @@
             <span style="display: inline-flex; padding: 2px 5px; background: #f466ad; color: white;">
                 {{ patternFilter }}
             </span>
+            <el-button v-if="operatorFilter!==''&&patternFilter!==''" style="margin-left: 10px" size="small"
+                       type="primary" icon="el-icon-download"
+                       @click="exportAll">导出
+            </el-button>
         </div>
         <div v-if="operatorFilter===''&&patternFilter===''"
              style="text-align: center;align-items: center;height: 200px;display: flex;justify-content: center">
@@ -195,14 +199,30 @@
             layout="prev, pager, next, jumper"
             :total="instructionMapsTotal">
         </el-pagination>
+        <el-dialog
+            title="提示"
+            :visible.sync="exporting"
+            :close-on-click-modal="false"
+            :close-on-press-escape="false"
+            :show-close="false"
+            width="30%">
+            <div style="display: flex;flex-direction: column;align-items: center;justify-content: center">
+                <Loading/>
+                <h1>导出中，请等待</h1>
+            </div>
+
+        </el-dialog>
     </div>
 </template>
 
 <script>
 import {basic_url} from "@/request/request";
+import Loading from "@/components/Loading/Loading";
+import moment from "moment";
 
 export default {
     name: "TableSpecific",
+    components: {Loading},
     props: ['id', 'instructionTypes'],
     data() {
         return {
@@ -233,6 +253,7 @@ export default {
             },
             specificOperator: '',
             specificPattern: '',
+            exporting: false
         }
     },
     methods: {
@@ -312,6 +333,35 @@ export default {
         toThousand(num = 0) {
             return num.toString().replace(/\d+/, function (n) {
                 return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
+            })
+        },
+        exportAll() {
+            let data = {
+                operator: this.operatorFilter,
+                pattern: this.patternFilter,
+                order: this.orderFilter,
+                orderby: this.orderBy,
+                ltid: this.id,
+                currentPage: this.instructionMapsCurrentPage,
+                limit: this.pageSize,
+            }
+            this.exporting = true
+            this.$axios.post(basic_url + '/excel/operatorPattern',
+                data, {
+                    responseType: "blob"
+                }
+            ).then(e => {
+                this.exporting = false
+                const link = document.createElement('a');
+                let blob = new Blob([e.data], {type: 'application/vnd.ms-excel'});
+                link.style.display = 'none';
+                link.href = URL.createObjectURL(blob);
+                let time = moment().format("yyyyMMDDHHmm")
+                link.setAttribute('download', `指令分析(operator+operand)-${time}-导出.xls`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link)
+
             })
         },
         getInstructionMapsAll() {

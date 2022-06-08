@@ -7,6 +7,7 @@
         <div class="boxLoading" v-show="loading"/>
         <div style="margin-bottom: 10px">
             历史调试信息
+            <el-button type="primary" size="mini" icon="el-icon-refresh" @click="getData()">刷新</el-button>
         </div>
         <el-table
             border
@@ -16,7 +17,7 @@
                 label="序号"
                 width="50">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.$index + 1 }}</span>
+                    <span style="margin-left: 10px">{{ 10 * (currentPage - 1) + scope.$index + 1 }}</span>
                 </template>
             </el-table-column>
             <el-table-column
@@ -39,7 +40,10 @@
                 prop="size"
                 width="180">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ toThousand(scope.row.size) }}</span>
+                    <span style="margin-left: 10px">{{ $util.renderSize(scope.row.size).size }}</span>
+                    <span
+                        style="margin-left: 10px; display: inline-flex; padding: 2px 5px; background: orange; color: white;font-size: 12px;border-radius: 2px;line-height: 14px">
+                        {{ $util.renderSize(scope.row.size).type }}</span>
                 </template>
             </el-table-column>
             <el-table-column
@@ -81,7 +85,7 @@
                             slot="reference"
                             size="mini"
                             type="danger"
-                            >删除
+                        >删除
                         </el-button>
                     </el-popconfirm>
 
@@ -137,6 +141,19 @@
             />
 
         </el-dialog>
+        <el-dialog
+            title="提示"
+            :visible.sync="deleting"
+            :close-on-click-modal="false"
+            :close-on-press-escape="false"
+            :show-close="false"
+            width="30%">
+            <div style="display: flex;flex-direction: column;align-items: center;justify-content: center">
+                <Loading/>
+                <h1>删除中，请等待</h1>
+            </div>
+
+        </el-dialog>
 
     </el-main>
 </template>
@@ -144,10 +161,11 @@
 <script>
 import {basic_url} from "@/request/request";
 import MUpload from "@/components/MUpload";
+import Loading from "@/components/Loading/Loading";
 
 export default {
     name: "History",
-    components: {MUpload},
+    components: {Loading, MUpload},
     data() {
         return {
             tableData: [],
@@ -160,11 +178,13 @@ export default {
             uploadUid: -1,
             uploading: false,
             traceid: -1,
+            deleting: false,
         }
     },
     methods: {
+
         deleteTrace(index, row) {
-            this.loading = true
+            this.deleting = true
 
             this.$axios.get(basic_url + '/trace/delete',
                 {
@@ -175,9 +195,10 @@ export default {
                         }
                 }
             ).then(e => {
-                this.$message.success("删除成功！")
-                this.loading = false
                 this.getData()
+            }).then(_=>{
+                this.deleting = false
+                this.$message.success("删除成功！")
             })
         },
         successcallBack(response) {
@@ -202,7 +223,7 @@ export default {
             this.$router.push('/debug/' + row.uid)
         },
         handleDelete(index, row) {
-            this.loading = true
+            this.deleting = true
 
             this.$axios.get(basic_url + '/deleteltlog',
                 {
@@ -212,9 +233,10 @@ export default {
                         }
                 }
             ).then(e => {
-                this.$message.success("删除成功！")
-                this.loading = false
                 this.getData()
+            }).then(_=>{
+                this.deleting = false
+                this.$message.success("删除成功！")
             })
         },
         uploadTrace(uid) {
@@ -262,7 +284,6 @@ export default {
     },
     mounted() {
         this.getData()
-
     },
     computed: {
         loginUsername: function () {

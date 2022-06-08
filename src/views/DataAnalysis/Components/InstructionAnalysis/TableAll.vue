@@ -11,7 +11,12 @@
                     :value="item">
                 </el-option>
             </el-select>
-
+            <el-button style="margin-left: 10px" size="small" type="primary" icon="el-icon-download"
+                       @click="exportInstructionMapsCurrent">导出当前
+            </el-button>
+            <el-button style="margin-left: 10px" size="small" type="primary" icon="el-icon-download"
+                       @click="exportInstructionMapsAll">导出全部
+            </el-button>
         </div>
         <div style="margin-top: 5px">
             已合并：
@@ -128,12 +133,12 @@
                             <div class="pattern-filter">
                                 <span class="pattern-filter-pattern">源自以下TB index:</span>
                             </div>
-                            <ul>
+                            <ul style="max-height: 400px;overflow-y: auto">
                                 <li :key="index" v-for="(item,index) in JSON.parse(scope.row.tbs) ">TB-{{ item }}</li>
                             </ul>
 
-                            <span slot="reference"  style="margin-left: 10px" class="table-operator"><i
-                                class="fa fa-crosshairs"  />定位出处</span>
+                            <span slot="reference" style="margin-left: 10px" class="table-operator"><i
+                                class="fa fa-crosshairs"/>定位出处</span>
                         </el-popover>
 
                     </template>
@@ -184,7 +189,7 @@
                             </el-button>
 
                             <span slot="reference" class="pattern"
-                                 @click="patternClick(scope.row.operator,scope.row.pattern)">
+                                  @click="patternClick(scope.row.operator,scope.row.pattern)">
                                 {{ scope.row.pattern }}
                             </span>
                         </el-popover>
@@ -238,14 +243,30 @@
             layout="prev, pager, next, jumper"
             @current-change="handleCurrentChangeInstructionMaps">
         </el-pagination>
+        <el-dialog
+            title="提示"
+            :visible.sync="exporting"
+            :close-on-click-modal="false"
+            :close-on-press-escape="false"
+            :show-close="false"
+            width="30%">
+            <div style="display: flex;flex-direction: column;align-items: center;justify-content: center">
+                <Loading/>
+                <h1>导出中，请等待</h1>
+            </div>
+
+        </el-dialog>
     </div>
 </template>
 
 <script>
 import {basic_url} from "@/request/request";
+import Loading from "@/components/Loading/Loading";
+import moment from "moment";
 
 export default {
     name: "TableAll",
+    components: {Loading},
     props: ['id', 'instructionTypes'],
     data() {
         return {
@@ -275,7 +296,8 @@ export default {
             operatorInfo: {
                 ir1execute: 0,
                 ir2execute: 0,
-            }
+            },
+            exporting: false
         }
     },
     methods: {
@@ -445,6 +467,70 @@ export default {
         toThousand(num = 0) {
             return num.toString().replace(/\d+/, function (n) {
                 return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
+            })
+        },
+        exportInstructionMapsCurrent() {
+            console.log("click export")
+            let data = {
+                operator: this.operatorFilter,
+                order: this.orderFilter,
+                orderby: this.orderBy,
+                ltid: this.id,
+                currentPage: this.instructionMapsCurrentPage,
+                limit: this.pageSize,
+                comboed: this.comboed,
+                hidden: this.hidden,
+                hiddenOperator: this.hiddenOperator
+
+            }
+            this.exporting = true
+            this.$axios.post(basic_url + '/excel/all',
+                data, {
+                    responseType: "blob"
+                }
+            ).then(e => {
+                this.exporting = false
+                const link = document.createElement('a');
+                let blob = new Blob([e.data], {type: 'application/vnd.ms-excel'});
+                link.style.display = 'none';
+                link.href = URL.createObjectURL(blob);
+                let time = moment().format("yyyyMMDDHHmm")
+                link.setAttribute('download', `指令分析(全部)-${time}-导出.xls`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link)
+
+            })
+        },
+        exportInstructionMapsAll() {
+            let data = {
+                operator: '',
+                order: 'desc',
+                orderby: 'ir2execute',
+                ltid: this.id,
+                currentPage: this.instructionMapsCurrentPage,
+                limit: this.pageSize,
+                comboed: [],
+                hidden: [],
+                hiddenOperator: []
+            }
+            this.exporting = true
+            this.$axios.post(basic_url + '/excel/all',
+                data, {
+                    responseType: "blob"
+                }
+            ).then(e => {
+                this.exporting = false
+                const link = document.createElement('a');
+                let blob = new Blob([e.data], {type: 'application/vnd.ms-excel'});
+                link.style.display = 'none';
+                link.href = URL.createObjectURL(blob);
+                let time = moment().format("yyyyMMDDHHmm")
+                link.setAttribute('download', `指令分析(全部)-${time}-导出.xls`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link)
+
             })
         },
         getInstructionMapsAll() {

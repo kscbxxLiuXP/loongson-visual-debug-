@@ -16,7 +16,7 @@
                 label="序号"
                 width="80">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.$index + 1 }}</span>
+                    <span style="margin-left: 10px">{{ (currentPage-1)*10+ scope.$index + 1 }}</span>
                 </template>
             </el-table-column>
             <el-table-column
@@ -48,13 +48,27 @@
             >
                 <template slot-scope="scope">
                     <div style="display: flex;flex-direction: column;justify-content: center;">
-                        <div><span style="display:inline-block;width: 50%;text-align: right">当前执行地址:</span><span>0x{{ dec2Hex(scope.row.currentaddress) }}</span></div>
-                        <div><span style="display:inline-block;width: 50%;text-align: right">断点地址:</span><span>0x{{ dec2Hex(scope.row.breakpointaddress) }}</span></div>
-                        <div><span style="display:inline-block;width: 50%;text-align: right">canExecute:</span><span>{{ scope.row.canexecute }}</span></div>
-                        <div><span style="display:inline-block;width: 50%;text-align: right">canStart:</span><span>{{ scope.row.canstart }}</span></div>
-                        <div><span style="display:inline-block;width: 50%;text-align: right">debug:</span><span>{{ scope.row.debug }}</span></div>
-                        <div><span style="display:inline-block;width: 50%;text-align: right">isend:</span><span>{{ scope.row.isend }}</span></div>
-                        <div><span style="display:inline-block;width: 50%;text-align: right">previousTrace:</span><span>{{ scope.row.previousTrace }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">当前执行地址:</span><span>0x{{
+                                dec2Hex(scope.row.currentaddress)
+                            }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">断点地址:</span><span>0x{{
+                                dec2Hex(scope.row.breakpointaddress)
+                            }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">canExecute:</span><span>{{
+                                scope.row.canexecute
+                            }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">canStart:</span><span>{{
+                                scope.row.canstart
+                            }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">debug:</span><span>{{
+                                scope.row.debug
+                            }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">isend:</span><span>{{
+                                scope.row.isend
+                            }}</span></div>
+                        <div><span style="display:inline-block;width: 50%;text-align: right">previousTrace:</span><span>{{
+                                scope.row.previousTrace
+                            }}</span></div>
                     </div>
 
 
@@ -96,6 +110,19 @@
             :total="total">
         </el-pagination>
 
+        <el-dialog
+            title="提示"
+            :visible.sync="deleting"
+            :close-on-click-modal="false"
+            :close-on-press-escape="false"
+            :show-close="false"
+            width="30%">
+            <div style="display: flex;flex-direction: column;align-items: center;justify-content: center">
+                <Loading/>
+                <h1>删除中，请等待</h1>
+            </div>
+        </el-dialog>
+
     </el-main>
 </template>
 
@@ -103,10 +130,11 @@
 import {basic_url} from "@/request/request";
 import DebugState from "@/views/Debug/OnlineDebugComponent/DebugState";
 import {dec2Hex, hex2Dec} from "@/util/HexadecimalConversion";
+import Loading from "@/components/Loading/Loading";
 
 export default {
     name: "TraceManage",
-    components: {DebugState},
+    components: {Loading, DebugState},
     data() {
         return {
             tableData: [],
@@ -115,27 +143,12 @@ export default {
             pageSize: 10,
             total: 0,
             loading: true,
+            deleting: false,
         }
     },
     methods: {
         dec2Hex,
         hex2Dec,
-        deleteTrace(index, row) {
-            this.loading = true
-            this.$axios.get(basic_url + '/trace/delete',
-                {
-                    params:
-                        {
-                            ltid: row.uid,
-                            traceid: row.traceid,
-                        }
-                }
-            ).then(e => {
-                this.$message.success("删除成功！")
-                this.loading = false
-                this.getData()
-            })
-        },
         toThousand(num = 0) {
             return num.toString().replace(/\d+/, function (n) {
                 return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
@@ -145,7 +158,20 @@ export default {
             this.$router.push('/debug/online/' + row.uid)
         },
         handleDelete(index, row) {
-            console.log(index, row);
+            this.deleting = true
+            this.$axios.get(basic_url + '/onlineDebug/delete',
+                {
+                    params:
+                        {
+                            debugid:row.uid,
+                        }
+                }
+            ).then(e => {
+                this.getData()
+            }).then(_ => {
+                this.$message.success("删除成功！")
+                this.deleting = false
+            })
         },
 
         handleSizeChange(val) {

@@ -251,7 +251,10 @@ export default {
                     label: 'Combo'+comIndex,
                 })
                 com.forEach(nodeIndex=>{
-                    nodess[nodeIndex].comboId = 'Combo'+comIndex
+                    if (nodess[nodeIndex]){
+
+                        nodess[nodeIndex].comboId = 'Combo'+comIndex
+                    }
                 })
             })
 

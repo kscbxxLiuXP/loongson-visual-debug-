@@ -11,7 +11,12 @@
                     :value="item">
                 </el-option>
             </el-select>
-
+            <el-button style="margin-left: 10px" size="small" type="primary" icon="el-icon-download"
+                       @click="exportInstructionMapsCurrent">导出当前
+            </el-button>
+            <el-button style="margin-left: 10px" size="small" type="primary" icon="el-icon-download"
+                       @click="exportInstructionMapsAll">导出全部
+            </el-button>
         </div>
         <div style="margin-top: 5px">
             已隐藏Pattern：
@@ -77,7 +82,7 @@
                             </div>
                             <div style="margin-top: 5px">
                                 <div><span class="pattern-filter-operator" style="font-size: 12px">本类指令占</span> :
-                                    {{ (scope.row.ir1execute / scope.row.sumir1 *100).toFixed(6)}}%
+                                    {{ (scope.row.ir1execute / scope.row.sumir1 * 100).toFixed(6) }}%
                                 </div>
 
                             </div>
@@ -86,15 +91,16 @@
                             </div>
                             <div style="margin-top: 5px">
                                 <div><span class="pattern-filter-operator" style="font-size: 12px">本条指令占</span> :
-                                    {{ (scope.row.ir2execute / scope.row.sumir2 *100).toFixed(6) }}%
+                                    {{ (scope.row.ir2execute / scope.row.sumir2 * 100).toFixed(6) }}%
                                 </div>
                             </div>
                             <el-button type="text" size="mini" v-if="operatorFilter===''"
-                                       @click="hideOperator(scope.row.operator)">隐藏{{scope.row.operator}}
+                                       @click="hideOperator(scope.row.operator)">隐藏{{ scope.row.operator }}
                             </el-button>
 
                             <div class="table-operator" slot="reference"
-                                 @click="()=>{operatorFilter=scope.row.operator;$emit('operatorClick',scope.row.operator);changeOperator()}">{{
+                                 @click="()=>{operatorFilter=scope.row.operator;$emit('operatorClick',scope.row.operator);changeOperator()}">
+                                {{
                                     scope.row.operator
                                 }}
                             </div>
@@ -165,12 +171,12 @@
                     <div>{{ toThousand(scope.row.ir1execute) }}</div>
                     <div> {{ scope.row.operator }}中:
                         {{
-                            (scope.row.num / sumir1 * 100) < 0.001 ? '<0.001' : (scope.row.ir1execute / scope.row.sumir1 * 100).toFixed(3)
+                            (scope.row.ir1execute / sumir1 * 100) < 0.001 ? '<0.001' : (scope.row.ir1execute / scope.row.sumir1 * 100).toFixed(3)
                         }}%
                     </div>
                     <div>总：
                         {{
-                            (scope.row.num / sumir1 * 100) < 0.001 ? '<0.001' : (scope.row.ir1execute / sumir1 * 100).toFixed(3)
+                            (scope.row.ir1execute / sumir1 * 100) < 0.001 ? '<0.001' : (scope.row.ir1execute / sumir1 * 100).toFixed(3)
                         }}%
                     </div>
 
@@ -182,7 +188,7 @@
                     <div>
                         {{ scope.row.operator }}中:
                         {{
-                            (scope.row.num / sumir1 * 100) < 0.001 ? '<0.001' : (scope.row.ir2execute / scope.row.sumir2 * 100).toFixed(3)
+                            (scope.row.ir2execute / sumir1 * 100) < 0.001 ? '<0.001' : (scope.row.ir2execute / scope.row.sumir2 * 100).toFixed(3)
                         }}%
                     </div>
                     <div>
@@ -204,14 +210,30 @@
             layout="prev, pager, next, jumper"
             :total="instructionMapsTotal">
         </el-pagination>
+        <el-dialog
+            title="提示"
+            :visible.sync="exporting"
+            :close-on-click-modal="false"
+            :close-on-press-escape="false"
+            :show-close="false"
+            width="30%">
+            <div style="display: flex;flex-direction: column;align-items: center;justify-content: center">
+                <Loading/>
+                <h1>导出中，请等待</h1>
+            </div>
+
+        </el-dialog>
     </div>
 </template>
 
 <script>
 import {basic_url} from "@/request/request";
+import moment from "moment";
+import Loading from "@/components/Loading/Loading";
 
 export default {
     name: "TablePattern",
+    components: {Loading},
     props: ['id', 'instructionTypes'],
     data() {
         return {
@@ -240,7 +262,9 @@ export default {
             operatorInfo: {
                 ir1execute: 0,
                 ir2execute: 0,
-            }
+            },
+            exporting: false
+
         }
     },
     methods: {
@@ -266,8 +290,8 @@ export default {
         },
         getOperatorInfo(row) {
 
-                   let ir1execute = row.sumir1
-                   let ir2execute = row.sumir2
+            let ir1execute = row.sumir1
+            let ir2execute = row.sumir2
 
             return {
                 ir1execute: ir1execute,
@@ -308,7 +332,7 @@ export default {
             this.hidden.splice(index, 1);
             this.getInstructionMapsAll()
         },
-        cancelHiddenOperator(operator){
+        cancelHiddenOperator(operator) {
             let flag = operator
             var index
             for (let i = 0; i < this.hiddenOperator.length; i++) {
@@ -361,6 +385,70 @@ export default {
                 return n.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
             })
         },
+
+        exportInstructionMapsCurrent() {
+            let data = {
+                operator: this.operatorFilter,
+                order: this.orderFilter,
+                orderby: this.orderBy,
+                ltid: this.id,
+                currentPage: this.instructionMapsCurrentPage,
+                limit: this.pageSize,
+                comboed: this.comboed,
+                hidden: this.hidden,
+                hiddenOperator: this.hiddenOperator
+
+            }
+            this.exporting = true
+            this.$axios.post(basic_url + '/excel/combinePattern',
+                data, {
+                    responseType: "blob"
+                }
+            ).then(e => {
+                this.exporting = false
+                const link = document.createElement('a');
+                let blob = new Blob([e.data], {type: 'application/vnd.ms-excel'});
+                link.style.display = 'none';
+                link.href = URL.createObjectURL(blob);
+                let time = moment().format("yyyyMMDDHHmm")
+                link.setAttribute('download', `指令分析(合并Pattern)-${time}-导出.xls`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link)
+
+            })
+        },
+        exportInstructionMapsAll() {
+            let data = {
+                operator: '',
+                order: 'desc',
+                orderby: 'ir2execute',
+                ltid: this.id,
+                currentPage: this.instructionMapsCurrentPage,
+                limit: this.pageSize,
+                comboed: [],
+                hidden: [],
+                hiddenOperator: []
+            }
+            this.exporting = true
+            this.$axios.post(basic_url + '/excel/combinePattern',
+                data, {
+                    responseType: "blob"
+                }
+            ).then(e => {
+                this.exporting = false
+                const link = document.createElement('a');
+                let blob = new Blob([e.data], {type: 'application/vnd.ms-excel'});
+                link.style.display = 'none';
+                link.href = URL.createObjectURL(blob);
+                let time = moment().format("yyyyMMDDHHmm")
+                link.setAttribute('download', `指令分析(合并Pattern)-${time}-导出.xls`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link)
+
+            })
+        },
         getInstructionMapsAll() {
             this.loading = true
             let data = {
@@ -372,7 +460,7 @@ export default {
                 limit: this.pageSize,
                 comboed: this.comboed,
                 hidden: this.hidden,
-                hiddenOperator:this.hiddenOperator
+                hiddenOperator: this.hiddenOperator
 
 
             }
@@ -480,7 +568,8 @@ export default {
 .el-table .warning-row {
     background: oldlace;
 }
-.table-operator{
+
+.table-operator {
     padding: 2px 5px;
     background: #fff0f6;
     border: #ffacd1 1px solid;
@@ -493,7 +582,8 @@ export default {
     cursor: pointer;
 
 }
-.table-operator:hover{
+
+.table-operator:hover {
 
     background: #e676a8;
     color: white;

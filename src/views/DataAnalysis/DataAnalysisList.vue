@@ -16,7 +16,7 @@
                 label="序号"
                 width="50">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.$index + 1 }}</span>
+                    <span style="margin-left: 10px">{{ (currentPage-1)*10+ scope.$index + 1 }}</span>
                 </template>
             </el-table-column>
             <el-table-column
@@ -32,7 +32,9 @@
                 prop="size"
                 width="180">
                 <template slot-scope="scope">
-                    <span>{{ toThousand(scope.row.ltlog.size) }}</span>
+                    <span style="margin-left: 10px">{{$util.renderSize (scope.row.ltlog.size).size }}</span>
+                    <span style="margin-left: 10px; display: inline-flex; padding: 2px 5px; background: orange; color: white;font-size: 12px;border-radius: 5px;line-height: 14px">
+                        {{$util.renderSize (scope.row.ltlog.size).type }}</span>
                 </template>
             </el-table-column>
             <el-table-column

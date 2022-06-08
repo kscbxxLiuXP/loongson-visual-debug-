@@ -30,13 +30,31 @@
 </template>
 
 <script>
+import {basic_url} from "@/request/request";
+
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: "Dashboard",
-    methods:{
-        jump(target){
+    methods: {
+        jump(target) {
             this.$router.push(target)
         }
+    },
+    mounted() {
+        // this.$axios.post(basic_url + '/excel/test', {}, {
+        //         responseType: "blob"
+        //     }
+        // ).then(e => {
+        //     const link = document.createElement('a');
+        //     let blob = new Blob([e.data], {type: 'application/vnd.ms-excel'});
+        //     link.style.display = 'none';
+        //     link.href = URL.createObjectURL(blob);
+        //     link.setAttribute('download', 'test.xls');
+        //     document.body.appendChild(link);
+        //     link.click();
+        //     document.body.removeChild(link)
+        //
+        // })
     }
 }
 </script>
@@ -61,16 +79,19 @@ export default {
     justify-content: center;
     transition: all 300ms;
 }
-.entry-icon{
+
+.entry-icon {
     text-align: center;
     font-size: 80px;
 }
-.entry-text{
+
+.entry-text {
     margin-top: 20px;
     text-align: center;
     font-size: 20px;
 }
-.entry:hover{
+
+.entry:hover {
     background-color: #ff8d02;
     color: white;
     cursor: pointer;
